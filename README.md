@@ -30,10 +30,54 @@ Team details follow
 
 ## Prerequisites
 
-List tech stack (including version if possible) on both backend and frondend (Database).
+- Docker Desktop
+- Git
+
+Docker will handle the following. There is no need to install separately.
+- Mailpit v1.30.0
+- MySQL v8.4
 
 ## Set Up and Installation
 
 Details on how to set up the project follow.
 
-<put the details here>
+This project will use Docker Compose to run:
+- MySQL for the database
+- Mailpit for local email testing
+
+### First Time Setup
+1. Clone the repository using either ssh or https depending on how you use git.
+
+```bash
+git clone <repo-url>
+cd 2026_Summer_Team5_Repo
+```
+
+2. Create local environment file from the example.
+
+```bash
+cp .env.example .env
+```
+
+3. Build the project
+
+```bash
+docker compose up --build -d
+```
+
+### Using Docker
+
+To start services:
+```bash
+docker compose up -d
+```
+
+To stop services:
+```bash
+docker compose down
+```
+
+To reset services and delete local database data (should not be needed often):
+```bash
+docker compose down -v
+```
