@@ -22,21 +22,14 @@ CREATE TABLE IF NOT EXISTS `users` (
   `password` VARCHAR(255) NOT NULL,
   `role` ENUM('STUDENT', 'CHAIR') NOT NULL,
   `student_id` INT NULL DEFAULT NULL,
-  `course_id` INT NOT NULL,
   `program` VARCHAR(45) NOT NULL,
-  `is_active` BIT NOT NULL,
-  `temp_password` VARCHAR(255) NOT NULL,
+  `is_active` BIT NOT NULL DEFAULT 1,
+  `must_change_password` BIT NOT NULL DEFAULT 0,
   `email_verified` BIT NULL DEFAULT 0,
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  INDEX `FK_users_courses_idx` (`course_id` ASC) VISIBLE,
-  UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE,
-  CONSTRAINT `FK_users_courses`
-    FOREIGN KEY (`course_id`)
-    REFERENCES `courses` (`course_id`)
-    ON DELETE NO ACTION
-    ON UPDATE NO ACTION)
+  UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE)
 ENGINE = InnoDB;
 
 
@@ -59,16 +52,16 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS `extra_credit_requests` (
   `id` INT NOT NULL AUTO_INCREMENT,
-  `description` VARCHAR(255) NOT NULL,
+  `description` VARCHAR(1000) NOT NULL,
   `student_id` INT NOT NULL,
   `chair_id` INT NULL,
   `course_id` INT NOT NULL,
-  `category_id` INT NULL,
+  `category_id` INT NOT NULL,
   `status` ENUM('PENDING', 'PRE_APPROVED', 'REJECTED', 'EVIDENCE_SUBMITTED', 'CLOSED', 'APPROVED') NOT NULL,
   `evidence_file_path` VARCHAR(255) NULL DEFAULT NULL,
   `due_date` DATETIME NULL DEFAULT NULL,
-  `awarded_points` INT NOT NULL,
-  `chair_feedback` VARCHAR(45) NOT NULL,
+  `awarded_points` INT NULL,
+  `chair_feedback` VARCHAR(1000) NULL,
   `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
