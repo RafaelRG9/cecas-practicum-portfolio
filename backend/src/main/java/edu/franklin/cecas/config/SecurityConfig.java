@@ -11,12 +11,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
+            .csrf(csrf -> csrf.disable()) // Temporarily disable CSRF until authentication is implemented
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/health", "/api/hello").permitAll()
+                .requestMatchers("/actuator/health", "/api/hello", "/api/auth/me").permitAll()
                 .anyRequest().authenticated()
             )
-            .httpBasic(Customizer.withDefaults());
+            .httpBasic(Customizer.withDefaults()); // Use HTTP Basic authentication for simplicity in development
         
         return http.build();
     }
