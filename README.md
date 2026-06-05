@@ -24,11 +24,15 @@ Nica Kelley
 
 ### 394 Students
 
-394 Student(s) here
+Emmy Solokha
+
+Burt Snyder
 
 ### 294 Students
 
-294 Student(s) here
+Rafael Ramirez-Gaston
+
+Alec Johnson
 
 ## Prerequisites
 
