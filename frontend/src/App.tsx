@@ -1,63 +1,25 @@
-import { useEffect, useState } from 'react'
-
-type HelloResponse = {
-  message: string
-}
+import { Route, Routes } from 'react-router-dom'
+import AppLayout from './app/AppLayout'
+import ChairPage from './pages/ChairPage'
+import DebugPage from './pages/DebugPage'
+import HomePage from './pages/HomePage'
+import LoginPage from './pages/LoginPage'
+import NotFoundPage from './pages/NotFoundPage'
+import RegisterPage from './pages/RegisterPage'
+import StudentPage from './pages/StudentPage'
 
 export default function App() {
-  const [message, setMessage] = useState('Loading backend status...')
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
-
-  useEffect(() => {
-    async function loadHello() {
-      try {
-        const response = await fetch('/api/hello')
-
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`)
-        }
-
-        const data: HelloResponse = await response.json()
-        setMessage(data.message)
-        setStatus('success')
-      } catch (error) {
-        console.error(error)
-        setMessage('Could not reach backend')
-        setStatus('error')
-      }
-    }
-
-    loadHello()
-  }, [])
-
   return (
-    <main className="min-h-screen bg-slate-100 px-6 py-12 text-slate-900">
-      <div className="mx-auto max-w-3xl rounded-2xl bg-white p-8 shadow-sm ring-1 ring-slate-200">
-        <p className="mb-3 text-sm font-medium uppercase tracking-[0.2em] text-sky-700">
-          CECAS Frontend Status
-        </p>
-
-        <h1 className="text-4xl font-semibold tracking-tight">
-          React + Vite + TailwindCSS running
-        </h1>
-
-        <p className="mt-4 text-lg text-slate-600">
-          This screen shows the frontend container is working and can reach the backend through the Vite dev proxy.
-        </p>
-
-        <div
-          className={`mt-8 rounded-xl border p-4 ${
-            status === 'success'
-              ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-              : status === 'error'
-                ? 'border-rose-200 bg-rose-50 text-rose-800'
-                : 'border-slate-200 bg-slate-50 text-slate-700'
-          }`}
-        >
-          <p className="text-sm font-medium uppercase tracking-wide">Backend Status</p>
-          <p className="mt-2 text-lg">{message}</p>
-        </div>
-      </div>
-    </main>
+    <Routes>
+      <Route path="/" element={<AppLayout />}>
+        <Route index element={<HomePage />} />
+        <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
+        <Route path="student" element={<StudentPage />} />
+        <Route path="chair" element={<ChairPage />} />
+        <Route path="debug" element={<DebugPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+    </Routes>
   )
 }
