@@ -34,6 +34,22 @@ Rafael Ramirez-Gaston
 
 Alec Johnson
 
+## Tech Stack
+### Frontend
+- React + TypeScript + React
+
+### Backend
+- Spring Boot
+
+### Database
+- MySQL + Flyway for schema migrations
+
+### Email
+- Mailpit
+
+### Styling
+- TailwindCSS
+
 ## Prerequisites
 
 - Docker Desktop (recommended for running all services)
