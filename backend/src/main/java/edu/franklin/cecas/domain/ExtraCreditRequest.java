@@ -21,16 +21,16 @@ public class ExtraCreditRequest {
     private User student;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chair_id", nullable = true)
+    @JoinColumn(name = "chair_id")
     private User chair;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "course_id", nullable = false)
-    private User course;
+    private Course course;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", nullable = false)
-    private User category;
+    private Category category;
 
     // --- ADDITIONAL COLUMNS ---
 
@@ -50,10 +50,10 @@ public class ExtraCreditRequest {
     @Column(name = "chair_feedback", nullable = true, length = 1000)
     private String chairFeedback;
 
-    @Column(name = "created_at", nullable = true, updatable = false)
+    @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at", nullable = true)
+    @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
 
 
@@ -64,10 +64,6 @@ public class ExtraCreditRequest {
 
     public Integer getId() {
         return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
     }
 
     public String getDescription() {
@@ -94,19 +90,19 @@ public class ExtraCreditRequest {
         this.chair = chair;
     }
 
-    public User getCourse() {
+    public Course getCourse() {
         return course;
     }
 
-    public void setCourse(User course) {
+    public void setCourse(Course course) {
         this.course = course;
     }
 
-    public User getCategory() {
+    public Category getCategory() {
         return category;
     }
 
-    public void setCategory(User category) {
+    public void setCategory(Category category) {
         this.category = category;
     }
 
@@ -154,15 +150,7 @@ public class ExtraCreditRequest {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 }
