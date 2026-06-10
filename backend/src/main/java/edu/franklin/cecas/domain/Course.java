@@ -21,12 +21,48 @@ public class Course {
     @Column(name = "course_code", nullable = false)
     private String courseCode;
 
-    @Column(name = "term")
+    @Column(name = "term", nullable = false)
     private String term;
 
-    @Column(name = "section")
+    @Column(name = "section", nullable = false)
     private String section;
 
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public Course() {
+
+    }
+
+    public Integer getCourseId() {
+        return courseId;
+    }
+
+    public String getCourseCode() {
+        return courseCode;
+    }
+
+    public void setCourseCode(String courseCode) {
+        this.courseCode = courseCode;
+    }
+
+    public String getTerm() {
+        return term;
+    }
+
+    public void setTerm(String term) {
+        this.term = term;
+    }
+
+    public String getSection() {
+        return section;
+    }
+
+    public void setSection(String section) {
+        this.section = section;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
 }
