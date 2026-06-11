@@ -1,14 +1,13 @@
 package edu.franklin.cecas.repository;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.context.annotation.Import;
-import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.context.annotation.Import;
 
 import edu.franklin.cecas.domain.User;
 import edu.franklin.cecas.domain.UserRole;
@@ -48,6 +47,49 @@ public class UserRepositoryTest {
         assertThat(result).isPresent();
         assertThat(result.get().getEmail()).isEqualTo("john@test.com");
     }
+    
+    @Test
+    public void testExistsByEmail() {
+        User user = createTestUser();
+        userRepository.save(user);
 
+        boolean exists = userRepository.existsByEmail("john@test.com");
+
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    public void testFindByStudentId() {
+        User user = createTestUser();
+        userRepository.save(user);
+
+        Optional<User> result = userRepository.findByStudentId(12345);
+
+        assertThat(result.get().getStudentId()).isEqualTo(12345);
+    }
+
+    @Test
+    public void testFindByRole() {
+        User user = createTestUser();
+        userRepository.save(user);
+
+        List<User> results = userRepository.findByRole(UserRole.STUDENT);
+
+        assertThat(results).isNotEmpty();
+
+        assertThat(results.get(0).getRole()).isEqualTo(UserRole.STUDENT);
+    }
+
+    @Test
+    public void testFindByProgram() {
+        User user = createTestUser();
+        userRepository.save(user);
+
+        List<User> results = userRepository.findByProgram("Computer Science");
+
+        assertThat(results).isNotEmpty();
+
+        assertThat(results.get(0).getRole()).isEqualTo("Computer Science");
+    }
 
 }
