@@ -1,5 +1,6 @@
 package edu.franklin.cecas.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -89,7 +90,7 @@ public class UserRepositoryTest {
 
         assertThat(results).isNotEmpty();
 
-        assertThat(results.get(0).getRole()).isEqualTo("Computer Science");
+        assertThat(results.get(0).getProgram()).isEqualTo("Computer Science");
     }
 
 }
