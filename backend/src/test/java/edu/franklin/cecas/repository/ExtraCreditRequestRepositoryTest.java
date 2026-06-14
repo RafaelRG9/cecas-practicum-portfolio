@@ -5,9 +5,6 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.context.annotation.Import;
 
 import edu.franklin.cecas.domain.Category;
 import edu.franklin.cecas.domain.Course;
@@ -15,13 +12,9 @@ import edu.franklin.cecas.domain.ExtraCreditRequest;
 import edu.franklin.cecas.domain.ExtraCreditRequestStatus;
 import edu.franklin.cecas.domain.User;
 import edu.franklin.cecas.domain.UserRole;
-import edu.franklin.cecas.support.MySqlTestcontainers;
+import edu.franklin.cecas.support.MySqlDataJpaTest;
 
-
-@DataJpaTest
-@Import(MySqlTestcontainers.class)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-
+@MySqlDataJpaTest
 public class ExtraCreditRequestRepositoryTest {
 
     @Autowired
@@ -29,6 +22,12 @@ public class ExtraCreditRequestRepositoryTest {
     
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private CourseRepository courseRepository;
+
+    @Autowired
+    private CategoryRepository categoryRepository;
     
     private User createTestStudent() {
         User user = new User();
@@ -60,7 +59,6 @@ public class ExtraCreditRequestRepositoryTest {
         return category;
     }
 
-
     @Test
     public void testFindByStudent_StudentId() {
 
@@ -68,8 +66,10 @@ public class ExtraCreditRequestRepositoryTest {
         userRepository.save(student);
 
         Course course = createTestCourse();
+        courseRepository.save(course);
 
         Category category = createTestCategory();
+        categoryRepository.save(category);
 
         ExtraCreditRequest request = new ExtraCreditRequest();
         request.setDescription("Test request");
@@ -92,12 +92,19 @@ public class ExtraCreditRequestRepositoryTest {
     public void testFindByCourse_CourseId() {
 
         Course course = createTestCourse();
+        courseRepository.save(course);
+
+        User student = createTestStudent();
+        userRepository.save(student);
+
+        Category category = createTestCategory();
+        categoryRepository.save(category);
 
         ExtraCreditRequest request = new ExtraCreditRequest();
         request.setDescription("Test request");
-        request.setStudent(createTestStudent());
+        request.setStudent(student);
         request.setCourse(course);
-        request.setCategory(createTestCategory());
+        request.setCategory(category);
         request.setStatus(ExtraCreditRequestStatus.PENDING);
 
         extraCreditRequestRepository.save(request);
@@ -112,11 +119,18 @@ public class ExtraCreditRequestRepositoryTest {
     public void testFindByCategory_CategoryId() {
 
         Category category = createTestCategory();
+        categoryRepository.save(category);
+
+        User student = createTestStudent();
+        userRepository.save(student);
+
+        Course course = createTestCourse();
+        courseRepository.save(course);
 
         ExtraCreditRequest request = new ExtraCreditRequest();
         request.setDescription("Test request");
-        request.setStudent(createTestStudent());
-        request.setCourse(createTestCourse());
+        request.setStudent(student);
+        request.setCourse(course);
         request.setCategory(category);
         request.setStatus(ExtraCreditRequestStatus.PENDING);
 
@@ -131,11 +145,20 @@ public class ExtraCreditRequestRepositoryTest {
     @Test
     public void testFindByStatus() {
 
+        User student = createTestStudent();
+        userRepository.save(student);
+
+        Course course = createTestCourse();
+        courseRepository.save(course);
+
+        Category category = createTestCategory();
+        categoryRepository.save(category);
+
         ExtraCreditRequest request = new ExtraCreditRequest();
         request.setDescription("Test request");
-        request.setStudent(createTestStudent());
-        request.setCourse(createTestCourse());
-        request.setCategory(createTestCategory());
+        request.setStudent(student);
+        request.setCourse(course);
+        request.setCategory(category);
         request.setStatus(ExtraCreditRequestStatus.EVIDENCE_SUBMITTED);
 
         extraCreditRequestRepository.save(request);
@@ -150,12 +173,19 @@ public class ExtraCreditRequestRepositoryTest {
     public void testFindByStudent_StudentIdAndStatus() {
 
         User student = createTestStudent();
+        userRepository.save(student);
+
+        Course course = createTestCourse();
+        courseRepository.save(course);
+
+        Category category = createTestCategory();
+        categoryRepository.save(category);
 
         ExtraCreditRequest request = new ExtraCreditRequest();
         request.setDescription("Test request");
         request.setStudent(student);
-        request.setCourse(createTestCourse());
-        request.setCategory(createTestCategory());
+        request.setCourse(course);
+        request.setCategory(category);
         request.setStatus(ExtraCreditRequestStatus.EVIDENCE_SUBMITTED);
 
         extraCreditRequestRepository.save(request);
@@ -169,6 +199,7 @@ public class ExtraCreditRequestRepositoryTest {
         assertThat(result.get(0).getStudent().getStudentId()).isEqualTo(student.getStudentId());
         assertThat(result.get(0).getStatus()).isEqualTo(ExtraCreditRequestStatus.EVIDENCE_SUBMITTED);
     }
+
     //@Test
     //public void testFindByChair_IdAndStatus()
 }

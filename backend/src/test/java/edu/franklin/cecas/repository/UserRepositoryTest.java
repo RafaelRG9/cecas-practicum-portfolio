@@ -2,22 +2,16 @@ package edu.franklin.cecas.repository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.List; //This needed to be added for List to be used - Rafael Ramirez-Gaston
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.context.annotation.Import;
 
 import edu.franklin.cecas.domain.User;
 import edu.franklin.cecas.domain.UserRole;
-import edu.franklin.cecas.support.MySqlTestcontainers;
+import edu.franklin.cecas.support.MySqlDataJpaTest;
 
-@DataJpaTest
-@Import(MySqlTestcontainers.class)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@MySqlDataJpaTest
 public class UserRepositoryTest {
     
         @Autowired
@@ -31,6 +25,22 @@ public class UserRepositoryTest {
             user.setPassword("123456");
             user.setRole(UserRole.STUDENT);
             user.setStudentId(12345);
+            user.setProgram("Computer Science");
+            user.setIsActive(true);
+            user.setMustChangePassword(false);
+            user.setEmailVerified(true);
+
+            return user;
+        }
+
+        private User createSecondTestUser() {
+            User user = new User();
+
+            user.setFullName("Jane Smith");
+            user.setEmail("jane@test.com");
+            user.setPassword("abcdef");
+            user.setRole(UserRole.STUDENT);
+            user.setStudentId(54321);
             user.setProgram("Computer Science");
             user.setIsActive(true);
             user.setMustChangePassword(false);
@@ -67,31 +77,39 @@ public class UserRepositoryTest {
 
         Optional<User> result = userRepository.findByStudentId(12345);
 
+        assertThat(result).isPresent();
         assertThat(result.get().getStudentId()).isEqualTo(12345);
     }
 
     @Test
     public void testFindByRole() {
         User user = createTestUser();
+        User secondUser = createSecondTestUser();
+
         userRepository.save(user);
+        userRepository.save(secondUser);
 
         List<User> results = userRepository.findByRole(UserRole.STUDENT);
 
         assertThat(results).isNotEmpty();
-
         assertThat(results.get(0).getRole()).isEqualTo(UserRole.STUDENT);
+        assertThat(results.get(1).getRole()).isEqualTo(UserRole.STUDENT);
+        assertThat(results.size()).isEqualTo(2);
     }
 
     @Test
     public void testFindByProgram() {
         User user = createTestUser();
+        User secondUser = createSecondTestUser();
+
         userRepository.save(user);
+        userRepository.save(secondUser);
 
         List<User> results = userRepository.findByProgram("Computer Science");
 
         assertThat(results).isNotEmpty();
-
-        assertThat(results.get(0).getRole()).isEqualTo("Computer Science");
+        assertThat(results.get(0).getProgram()).isEqualTo("Computer Science");
+        assertThat(results.get(1).getProgram()).isEqualTo("Computer Science");
+        assertThat(results.size()).isEqualTo(2);
     }
-
 }
