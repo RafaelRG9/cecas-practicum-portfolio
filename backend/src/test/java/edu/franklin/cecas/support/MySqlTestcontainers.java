@@ -1,15 +1,15 @@
 package edu.franklin.cecas.support;
 
-import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.testcontainers.mysql.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
-@TestConfiguration(proxyBeanMethods = false)
-@Testcontainers
-public class MySqlTestcontainers {
+public final class MySqlTestcontainers {
+
+    private MySqlTestcontainers() {
+        // Private constructor to prevent instantiation
+    }
 
     @Container
     @ServiceConnection
