@@ -3,19 +3,14 @@ package edu.franklin.cecas.repository;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.context.annotation.Import;
 import static org.assertj.core.api.Assertions.assertThat;
 
 
 import edu.franklin.cecas.domain.Category;
-import edu.franklin.cecas.support.MySqlTestcontainers;
+import edu.franklin.cecas.support.MySqlDataJpaTest;
 
-@DataJpaTest
-@Import(MySqlTestcontainers.class)
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-public class CategoryRepositoryTest {
+// @MySqlDataJpaTest
+// public class CategoryRepositoryTest {
     
 //     @Autowired
 //     private CategoryRepository categoryRepository;
@@ -35,4 +30,4 @@ public class CategoryRepositoryTest {
 //         assertThat(savedCategory.getDescription()).isEqualTo("Points for class participation");
 //         assertThat(savedCategory.getDefaultPoints()).isEqualTo(10);
 //     }
-}
+// }
