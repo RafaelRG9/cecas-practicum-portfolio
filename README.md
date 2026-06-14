@@ -143,3 +143,11 @@ git push -u origin feature/your-ticket-name
 ```
 ## Open Pull Request into develop on GitHub
 Go to the GitHub repository website to open a Pull Request (PR) from your feature branch into develop for review.
+
+## Testing Notes
+We are testing against the MySQL database rather than using in memory for consistency and expected behavior.
+We have created some custom annotations for testing to streamline things. Use:
+- @MySqlDataJpaTest for repository/entity tests
+- @MySqlServiceTest for service-layer tests with real Spring + MySQL
+- @MySqlMockMvcTest for auth/web integration tests with real Spring + MySQL + MockMvc
+- @WebMvcTest for lightweight controller-slice tests
