@@ -1,6 +1,7 @@
 package edu.franklin.cecas.repository;
 
 import java.util.Optional;
+import java.util.List; //This needed to be added for List to be used - Rafael Ramirez-Gaston
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
