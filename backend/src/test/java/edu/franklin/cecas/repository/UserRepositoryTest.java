@@ -1,5 +1,6 @@
 package edu.franklin.cecas.repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.List; //This needed to be added for List to be used - Rafael Ramirez-Gaston
 
@@ -27,7 +28,7 @@ public class UserRepositoryTest {
 
             user.setFullName("John Doe");
             user.setEmail("john@test.com");
-            user.setPassword("password");
+            user.setPassword("123456");
             user.setRole(UserRole.STUDENT);
             user.setStudentId(12345);
             user.setProgram("Computer Science");
