@@ -44,7 +44,7 @@ public class SecurityConfig {
             )
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/health", "/api/hello", "/api/auth/me").permitAll()
+                .requestMatchers("/actuator/health", "/api/hello", "/api/auth/me", "/api/users/**").permitAll()
                 .anyRequest().authenticated()
             )
             .logout(logout -> logout
