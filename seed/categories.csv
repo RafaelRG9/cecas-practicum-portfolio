@@ -1,0 +1,9 @@
+category_name,description,default_points
+Seminar Attendance,"Approved attendance at an academic or professional seminar",5
+Workshop Participation,"Completion of an approved workshop or skills session",5
+Competition Participation,"Participation in an approved academic competition or challenge",10
+Hackathon Participation,"Participation in an approved hackathon, coding event, or team challenge",10
+Professional Certification,"Completion of an approved certification or credential milestone",15
+Community Service,"Approved community service activity connected to program goals",5
+Research Presentation,"Presentation of approved research, poster work, or conference material",15
+Peer Tutoring,"Approved tutoring, mentoring, or academic support for other students",8

@@ -1,0 +1,9 @@
+email,full_name,program,course_codes,temp_password
+grace.hopper@email.franklin.edu,Grace Hopper,Computer Science,COMP-110|COMP-120|COMP-210,ChairTemp01!
+ada.lovelace@email.franklin.edu,Ada Lovelace,Computer Science,COMP-120|COMP-220|COMP-230,ChairTemp02!
+alan.turing@email.franklin.edu,Alan Turing,Computer Science,COMP-210|COMP-230|COMP-310,ChairTemp03!
+katherine.johnson@email.franklin.edu,Katherine Johnson,Computer Science,COMP-220|COMP-320,ChairTemp04!
+donald.knuth@email.franklin.edu,Donald Knuth,Computer Science,COMP-110|COMP-310|COMP-410,ChairTemp05!
+margaret.hamilton@email.franklin.edu,Margaret Hamilton,Computer Science,COMP-230|COMP-320|COMP-410,ChairTemp06!
+barbara.liskov@email.franklin.edu,Barbara Liskov,Computer Science,COMP-120|COMP-210|COMP-320,ChairTemp07!
+edsger.dijkstra@email.franklin.edu,Edsger Dijkstra,Computer Science,COMP-220|COMP-310|COMP-410,ChairTemp08!

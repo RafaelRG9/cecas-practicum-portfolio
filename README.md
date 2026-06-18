@@ -155,4 +155,4 @@ We have created some custom annotations for testing to streamline things. Use:
 ## Documentation
 Design and implementation notes for all shared project subsystems.
 
-- [Seed System Overview] (docs/seed-system.md)
+- [Seed System Overview](docs/seed-system.md)
