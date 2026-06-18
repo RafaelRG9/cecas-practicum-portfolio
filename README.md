@@ -151,3 +151,8 @@ We have created some custom annotations for testing to streamline things. Use:
 - @MySqlServiceTest for service-layer tests with real Spring + MySQL
 - @MySqlMockMvcTest for auth/web integration tests with real Spring + MySQL + MockMvc
 - @WebMvcTest for lightweight controller-slice tests
+
+## Documentation
+Design and implementation notes for all shared project subsystems.
+
+- [Seed System Overview] (docs/seed-system.md)
