@@ -38,6 +38,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
         SecurityContextRepository securityContextRepository) throws Exception {
+            
         http
                 .csrf(csrf -> csrf.disable()) // Temporarily disable CSRF until authentication is implemented
                 .securityContext(sc -> sc.securityContextRepository(securityContextRepository))

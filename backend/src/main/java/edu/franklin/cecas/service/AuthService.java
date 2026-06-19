@@ -1,15 +1,28 @@
 package edu.franklin.cecas.service;
 
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
+import org.springframework.security.web.context.SecurityContextRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import edu.franklin.cecas.domain.User;
 import edu.franklin.cecas.domain.UserRole;
 import edu.franklin.cecas.dto.CurrentUserResponse;
+import edu.franklin.cecas.dto.LoginRequest;
 import edu.franklin.cecas.dto.RegisterRequest;
 import edu.franklin.cecas.exception.EmailAlreadyExistsException;
+import edu.franklin.cecas.exception.InvalidCredentialsException;
 import edu.franklin.cecas.exception.RegistrationNotAllowedException;
 import edu.franklin.cecas.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 @Transactional
@@ -17,13 +30,24 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordService passwordService;
+    private final AuthenticationManager authenticationManager;
+    private final SecurityContextRepository securityContextRepository;
+    private final SessionAuthenticationStrategy sessionAuthenticationStrategy;
 
-    public AuthService(UserRepository userRepository, PasswordService passwordService) {
+    public AuthService(UserRepository userRepository,
+            PasswordService passwordService,
+            AuthenticationManager authenticationManager,
+            SecurityContextRepository securityContextRepository,
+            SessionAuthenticationStrategy sessionAuthenticationStrategy) {
         this.userRepository = userRepository;
         this.passwordService = passwordService;
+        this.authenticationManager = authenticationManager;
+        this.securityContextRepository = securityContextRepository;
+        this.sessionAuthenticationStrategy = sessionAuthenticationStrategy;
     }
 
     public CurrentUserResponse register(RegisterRequest request) {
+
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new EmailAlreadyExistsException("An account with this email already exists.");
         }
@@ -46,5 +70,36 @@ public class AuthService {
         User savedUser = userRepository.save(user);
 
         return new CurrentUserResponse(false, savedUser.getEmail(), savedUser.getRole().name());
+    }
+
+    public CurrentUserResponse login(LoginRequest request,HttpServletRequest httpRequest,
+            HttpServletResponse httpResponse) {
+        try {
+            UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
+                    request.getEmail(),
+                    request.getPassword());
+
+            Authentication authentication = authenticationManager.authenticate(authRequest);
+
+            SecurityContext context = SecurityContextHolder.createEmptyContext();
+            context.setAuthentication(authentication);
+            SecurityContextHolder.setContext(context);
+
+            sessionAuthenticationStrategy.onAuthentication(authentication, httpRequest, httpResponse);
+            securityContextRepository.saveContext(context, httpRequest, httpResponse);
+
+            String role = authentication.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .filter(authority -> authority.startsWith("ROLE_"))
+                    .map(authority -> authority.substring("ROLE_".length()))
+                    .findFirst()
+                    .orElse(null);
+
+            return new CurrentUserResponse(true, authentication.getName(), role);
+
+        } catch (AuthenticationException ex) {
+            SecurityContextHolder.clearContext();
+            throw new InvalidCredentialsException("Invalid email or password.");
+        }
     }
 }
