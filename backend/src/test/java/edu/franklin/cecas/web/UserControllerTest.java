@@ -25,7 +25,6 @@ import edu.franklin.cecas.service.UserService;
 import edu.franklin.cecas.dto.UserProfileResponse;
 import edu.franklin.cecas.dto.ChangePasswordRequest;
 import edu.franklin.cecas.dto.UserDTO;
-import edu.franklin.cecas.web.GlobalExceptionHandler;
 
 @WebMvcTest(controllers = UserController.class)
 @Import({SecurityConfig.class, GlobalExceptionHandler.class})

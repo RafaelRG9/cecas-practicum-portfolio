@@ -28,38 +28,40 @@ public class SecurityConfig {
 
     SecurityConfig(CecasUserDetailsService cecasUserDetailsService) {
         this.cecasUserDetailsService = cecasUserDetailsService;
-        }
+    }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-       SecurityContextRepository securityContextRepository = new HttpSessionSecurityContextRepository();
+    public SecurityContextRepository securityContextRepository() {
+        return new HttpSessionSecurityContextRepository();
+    }
 
-
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+        SecurityContextRepository securityContextRepository) throws Exception {
+            
         http
-            .csrf(csrf -> csrf.disable()) // Temporarily disable CSRF until authentication is implemented
-            .securityContext(sc -> sc.securityContextRepository(securityContextRepository))
-            .sessionManagement(sm -> sm
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                .sessionFixation(sf -> sf.migrateSession()) // rotate session on auth
-            )
-            .authenticationProvider(authenticationProvider())
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/health", "/api/hello", "/api/auth/me", "/api/users/**").permitAll()
-                .anyRequest().authenticated()
-            )
-            .logout(logout -> logout
-                .logoutUrl("/api/auth/logout")
-                .invalidateHttpSession(true)
-                .deleteCookies("CECASSESSION") // must match application.properties
-                .addLogoutHandler(new HeaderWriterLogoutHandler(
-                    new ClearSiteDataHeaderWriter(ClearSiteDataHeaderWriter.Directive.COOKIES)
-                ))
-                .permitAll()
-            )
-            .httpBasic(Customizer.withDefaults()); // Use HTTP Basic authentication for simplicity in development
+                .csrf(csrf -> csrf.disable()) // Temporarily disable CSRF until authentication is implemented
+                .securityContext(sc -> sc.securityContextRepository(securityContextRepository))
+                .sessionManagement(sm -> sm
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .sessionFixation(sf -> sf.migrateSession()) // rotate session on auth
+                )
+                .authenticationProvider(authenticationProvider())
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/health", "/api/hello", "/api/auth/me", "/api/users/**").permitAll()
+                        .anyRequest().authenticated())
+                .logout(logout -> logout
+                        .logoutUrl("/api/auth/logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("CECASSESSION") // must match application.properties
+                        .addLogoutHandler(new HeaderWriterLogoutHandler(
+                                new ClearSiteDataHeaderWriter(ClearSiteDataHeaderWriter.Directive.COOKIES)))
+                        .permitAll())
+                .httpBasic(Customizer.withDefaults()); // Use HTTP Basic authentication for simplicity in development
 
         return http.build();
     }
+
     @Bean
     public SessionAuthenticationStrategy sessionAuthenticationStrategy() {
         // rotates session id to mitigate fixation attacks
@@ -68,9 +70,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // return new BCryptPasswordEncoder(); add back once authService is implemented (hashing passwords before saving to DB)
-        // DEV ONLY: no encoding, matches plain-text passwords
-        return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
@@ -82,6 +82,6 @@ public class SecurityConfig {
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(cecasUserDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
-        return authProvider; 
+        return authProvider;
     }
 }
