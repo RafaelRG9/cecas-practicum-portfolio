@@ -68,9 +68,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // return new BCryptPasswordEncoder(); add back once authService is implemented (hashing passwords before saving to DB)
-        // DEV ONLY: no encoding, matches plain-text passwords
-        return org.springframework.security.crypto.password.NoOpPasswordEncoder.getInstance();
+        return new BCryptPasswordEncoder();
     }
 
     @Bean
