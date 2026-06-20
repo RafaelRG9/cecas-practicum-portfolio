@@ -49,14 +49,6 @@ public class User {
 
     public User(){}
 
-  @PrePersist
-  @PreUpdate
-  private void normalizeEmail() {
-      if (this.email != null) {
-          this.email = this.email.trim();
-      }
-  }
-
     public Integer getId() {
         return id;
     }

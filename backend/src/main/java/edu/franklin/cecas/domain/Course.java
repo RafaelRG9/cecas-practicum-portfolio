@@ -6,8 +6,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
@@ -48,15 +46,6 @@ public class Course {
         this.term = term;
         this.section = section;
         this.isActive = true;
-        normalizeKey();
-    }
-    @PrePersist
-    @PreUpdate
-    // ensures courseCode, term, and section are trimmed and uppercase for consistent key indexing
-    private void normalizeKey() {
-        if (this.courseCode != null) this.courseCode = this.courseCode.trim().toUpperCase();
-        if (this.term != null) this.term = this.term.trim().toUpperCase();
-        if (this.section != null) this.section = this.section.trim().toUpperCase();
     }
 
     public Integer getCourseId() {
