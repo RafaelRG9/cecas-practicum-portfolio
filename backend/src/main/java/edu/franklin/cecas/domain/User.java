@@ -13,10 +13,10 @@ public class User {
     @Column(name = "id")
     private Integer id;
 
-    @Column(name = "full_name", nullable = false)
+    @Column(name = "full_name", nullable = false, length = 100)
     private String fullName;
 
-    @Column(name = "email", nullable = false)
+    @Column(name = "email", nullable = false, length = 255)
     private String email;
 
     @Column(name = "password", nullable = false)
@@ -29,7 +29,7 @@ public class User {
     @Column(name = "student_id")
     private Integer studentId;
 
-    @Column(name = "program", nullable = false)
+    @Column(name = "program", nullable = false, length = 45)
     private String program;
 
     @Column(name = "is_active", nullable = false)
@@ -47,9 +47,15 @@ public class User {
     @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
 
-    public User(){
+    public User(){}
 
-    }
+  @PrePersist
+  @PreUpdate
+  private void normalizeEmail() {
+      if (this.email != null) {
+          this.email = this.email.trim();
+      }
+  }
 
     public Integer getId() {
         return id;

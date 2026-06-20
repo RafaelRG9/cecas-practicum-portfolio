@@ -32,7 +32,7 @@ public class CecasUserDetailsServiceTest {
     @Test
     void loadUserByUsername_whenUserExists_returnsUserDetails() {
         User user = mock(User.class);
-        when(userRepository.findByEmail("sample@test.com")).thenReturn(Optional.of(user));
+        when(userRepository.findByEmailIgnoreCase("sample@test.com")).thenReturn(Optional.of(user));
         when(user.getEmail()).thenReturn("sample@test.com");
         when(user.getPassword()).thenReturn("Somepassword!");
         when(user.getIsActive()).thenReturn(true);
@@ -52,7 +52,7 @@ public class CecasUserDetailsServiceTest {
 
     @Test
     void loadUserByUsername_whenUserMissing_throws() {
-        when(userRepository.findByEmail("missing@test.com")).thenReturn(Optional.empty());
+        when(userRepository.findByEmailIgnoreCase("missing@test.com")).thenReturn(Optional.empty());
 
         assertThrows(UsernameNotFoundException.class, () -> {
             service.loadUserByUsername("missing@test.com");

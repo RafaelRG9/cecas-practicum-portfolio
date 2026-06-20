@@ -63,7 +63,7 @@ public class UserServiceTest {
 
         userService.changePassword(user.getEmail(), req);
 
-        User updated = userRepository.findByEmail(user.getEmail()).orElseThrow();
+        User updated = userRepository.findByEmailIgnoreCase(user.getEmail()).orElseThrow();
         assertTrue(passwordEncoder.matches("newPass", updated.getPassword()));
         assertFalse(Boolean.TRUE.equals(updated.getMustChangePassword()));
     }
@@ -82,7 +82,7 @@ public class UserServiceTest {
 
         userService.changePassword(email, req);
 
-        User updated = userRepository.findByEmail(email).orElseThrow();
+        User updated = userRepository.findByEmailIgnoreCase(email).orElseThrow();
         assertTrue(passwordEncoder.matches("newPass", updated.getPassword()));
         assertFalse(Boolean.TRUE.equals(updated.getMustChangePassword()));
     }

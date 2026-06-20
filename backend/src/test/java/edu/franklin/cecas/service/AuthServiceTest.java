@@ -65,7 +65,7 @@ public class AuthServiceTest {
 
         CurrentUserResponse response = authService.register(request);
 
-        User savedUser = userRepository.findByEmail(request.getEmail()).orElseThrow();
+        User savedUser = userRepository.findByEmailIgnoreCase(request.getEmail()).orElseThrow();
 
         assertNotNull(savedUser);
         assertEquals(request.getEmail(), savedUser.getEmail());

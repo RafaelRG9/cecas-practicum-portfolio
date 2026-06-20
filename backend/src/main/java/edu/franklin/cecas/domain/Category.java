@@ -6,6 +6,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
@@ -18,7 +20,7 @@ public class Category {
     @Column(name = "category_id", nullable = false)
     private Integer categoryId;
 
-    @Column(name = "category_name", nullable = false)
+    @Column(name = "category_name", nullable = false, length = 255)
     private String categoryName;
 
     @Column(name = "description", nullable = false, length = 1000)
@@ -27,11 +29,21 @@ public class Category {
     @Column(name = "default_points", nullable = false)
     private Integer defaultPoints;
 
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive = true;
+
     @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public Category() {
+    public Category() {}
 
+    @PrePersist
+    @PreUpdate
+    // ensures categoryName does not have leading/trailing whitespace for consistent indexing and display
+    private void normalizeName() {
+        if (this.categoryName != null) {
+            this.categoryName = this.categoryName.trim();
+        }
     }
 
     public Integer getCategoryId() {
@@ -60,6 +72,15 @@ public class Category {
 
     public void setDefaultPoints(Integer defaultPoints) {
         this.defaultPoints = defaultPoints;
+    }
+
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean isActive) {
+        this.isActive = isActive;
     }
 
     public LocalDateTime getCreatedAt() {
