@@ -36,7 +36,7 @@ public class UserService {
      * @return
      */
     public UserProfileResponse getUserProfile(String email) {
-        return userRepository.findByEmail(email)
+        return userRepository.findByEmailIgnoreCase(email)
                 .map(user -> new UserProfileResponse(
                         user.getEmail(),
                         user.getFullName(),
@@ -52,7 +52,7 @@ public class UserService {
      * 
      */
     public void changePassword(String email, ChangePasswordRequest request) {
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         // If user is NOT forced to change password, verify current password.
@@ -77,7 +77,7 @@ public class UserService {
      * 
      */
     public boolean isMustChangePassword(String email) {
-        return userRepository.findByEmail(email)
+        return userRepository.findByEmailIgnoreCase(email)
                 .map(user -> Boolean.TRUE.equals(user.getMustChangePassword()))
                 .orElse(false);
     }

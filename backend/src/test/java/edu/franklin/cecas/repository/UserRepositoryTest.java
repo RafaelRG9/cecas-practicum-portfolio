@@ -50,11 +50,11 @@ public class UserRepositoryTest {
         }
 
     @Test
-    public void testFindByEmail() {
+    public void testFindByEmailIgnoreCase() {
         User user = createTestUser();
         userRepository.save(user);
 
-        Optional<User> result = userRepository.findByEmail("john@test.com");
+        Optional<User> result = userRepository.findByEmailIgnoreCase("John@Test.com");
 
         assertThat(result).isPresent();
         assertThat(result.get().getEmail()).isEqualTo("john@test.com");
@@ -89,7 +89,7 @@ public class UserRepositoryTest {
         userRepository.save(user);
         userRepository.save(secondUser);
 
-        List<User> results = userRepository.findByRole(UserRole.STUDENT);
+        List<User> results = userRepository.findAllByRoleAndIsActiveTrue(UserRole.STUDENT);
 
         assertThat(results).isNotEmpty();
         assertThat(results.get(0).getRole()).isEqualTo(UserRole.STUDENT);
@@ -111,5 +111,33 @@ public class UserRepositoryTest {
         assertThat(results.get(0).getProgram()).isEqualTo("Computer Science");
         assertThat(results.get(1).getProgram()).isEqualTo("Computer Science");
         assertThat(results.size()).isEqualTo(2);
+    }
+    @Test
+    public void testFindAllByRoleAndIsActiveTrue() {
+
+        User user1 = createTestUser();
+        User user2 = createSecondTestUser();
+
+        User inactiveUser = createTestUser();
+        inactiveUser.setEmail("inactive@test.com");
+        inactiveUser.setIsActive(false);
+
+        userRepository.saveAll(List.of(user1, user2, inactiveUser));
+
+        List<User> results =
+            userRepository.findAllByRoleAndIsActiveTrue(UserRole.STUDENT);
+
+
+        assertThat(results).hasSize(2);
+        
+        assertThat(results)
+            .allMatch(u -> u.getRole() == UserRole.STUDENT);
+
+        assertThat(results)
+            .allMatch(User::getIsActive);
+
+        assertThat(results)
+            .extracting(User::getEmail)
+            .containsExactlyInAnyOrder("john@test.com", "jane@test.com");
     }
 }
