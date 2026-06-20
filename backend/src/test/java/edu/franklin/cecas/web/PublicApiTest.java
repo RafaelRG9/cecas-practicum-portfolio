@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import edu.franklin.cecas.config.SecurityConfig;
+import edu.franklin.cecas.service.AuthService;
 import edu.franklin.cecas.service.CecasUserDetailsService;
 
 import org.junit.jupiter.api.Test;
@@ -24,6 +25,10 @@ public class PublicApiTest {
     
     @MockitoBean
     private CecasUserDetailsService cecasUserDetailsService;
+
+    @MockitoBean
+    private AuthService authService;
+    
     @Autowired
     private MockMvc mockMvc;
 
