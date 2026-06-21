@@ -19,7 +19,7 @@ public class ExtraCreditRequestRepositoryTest {
 
     @Autowired
     private ExtraCreditRequestRepository extraCreditRequestRepository;
-    
+
     @Autowired
     private UserRepository userRepository;
 
@@ -28,7 +28,7 @@ public class ExtraCreditRequestRepositoryTest {
 
     @Autowired
     private CategoryRepository categoryRepository;
-    
+
     private User createTestStudent() {
         User user = new User();
         user.setFullName("Test Student");
@@ -45,7 +45,7 @@ public class ExtraCreditRequestRepositoryTest {
 
     private Course createTestCourse() {
         Course course = new Course();
-        course.setCourseCode("COMP 311"); //cooked class
+        course.setCourseCode("COMP 311"); // cooked class
         course.setTerm("Summer 2026");
         course.setSection("01");
         return course;
@@ -60,7 +60,7 @@ public class ExtraCreditRequestRepositoryTest {
     }
 
     @Test
-    public void testFindByStudent_StudentId() {
+    public void testFindByStudent_Id() {
 
         User student = createTestStudent();
         userRepository.save(student);
@@ -80,13 +80,14 @@ public class ExtraCreditRequestRepositoryTest {
 
         extraCreditRequestRepository.save(request);
 
-        List<ExtraCreditRequest> result = extraCreditRequestRepository.findByStudent_StudentId(student.getStudentId());
+        List<ExtraCreditRequest> result = extraCreditRequestRepository.findByStudent_Id(student.getId());
 
-        assertThat(result).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getStudent().getId()).isEqualTo(student.getId());
     }
 
-    //@Test
-    //public void test findByChair_Id()
+    // @Test
+    // public void test findByChair_Id()
 
     @Test
     public void testFindByCourse_CourseId() {
@@ -136,7 +137,8 @@ public class ExtraCreditRequestRepositoryTest {
 
         extraCreditRequestRepository.save(request);
 
-        List<ExtraCreditRequest> result = extraCreditRequestRepository.findByCategory_CategoryId(category.getCategoryId());
+        List<ExtraCreditRequest> result = extraCreditRequestRepository
+                .findByCategory_CategoryId(category.getCategoryId());
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getCategory().getCategoryId()).isEqualTo(category.getCategoryId());
@@ -163,14 +165,15 @@ public class ExtraCreditRequestRepositoryTest {
 
         extraCreditRequestRepository.save(request);
 
-        List<ExtraCreditRequest> result = extraCreditRequestRepository.findByStatus(ExtraCreditRequestStatus.EVIDENCE_SUBMITTED);
+        List<ExtraCreditRequest> result = extraCreditRequestRepository
+                .findByStatus(ExtraCreditRequestStatus.EVIDENCE_SUBMITTED);
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getStatus()).isEqualTo(ExtraCreditRequestStatus.EVIDENCE_SUBMITTED);
     }
 
     @Test
-    public void testFindByStudent_StudentIdAndStatus() {
+    public void testFindByStudent_IdAndStatus() {
 
         User student = createTestStudent();
         userRepository.save(student);
@@ -190,16 +193,15 @@ public class ExtraCreditRequestRepositoryTest {
 
         extraCreditRequestRepository.save(request);
 
-        List<ExtraCreditRequest> result = 
-            extraCreditRequestRepository
-                .findByStudent_StudentIdAndStatus(student.getStudentId()
-                , ExtraCreditRequestStatus.EVIDENCE_SUBMITTED);
+        List<ExtraCreditRequest> result = extraCreditRequestRepository
+                .findByStudent_IdAndStatus(student.getId(),
+                        ExtraCreditRequestStatus.EVIDENCE_SUBMITTED);
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getStudent().getStudentId()).isEqualTo(student.getStudentId());
+        assertThat(result.get(0).getStudent().getId()).isEqualTo(student.getId());
         assertThat(result.get(0).getStatus()).isEqualTo(ExtraCreditRequestStatus.EVIDENCE_SUBMITTED);
     }
 
-    //@Test
-    //public void testFindByChair_IdAndStatus()
+    // @Test
+    // public void testFindByChair_IdAndStatus()
 }

@@ -75,7 +75,7 @@ public class ExtraCreditRequestService {
         User student = userRepository.findByEmailIgnoreCase(studentEmail)  
             .orElseThrow(() -> new RuntimeException("User not found"));  
 
-        return requestRepository.findByStudent_StudentId(student.getStudentId()).stream()  
+        return requestRepository.findByStudent_Id(student.getId()).stream()  
             .map(ExtraCreditResponseDTO::new)  
             .collect(Collectors.toList());
         }
