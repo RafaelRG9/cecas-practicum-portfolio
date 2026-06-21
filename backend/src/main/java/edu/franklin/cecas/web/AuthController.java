@@ -4,6 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -60,7 +61,7 @@ public class AuthController {
 
     /**
      * POST /api/auth/login
-     * Authenticate user and return JWT token
+     * Authenticate user and return session cookie.
      */
     @PostMapping("/login")
     public ResponseEntity<CurrentUserResponse> loginUser(
@@ -72,5 +73,14 @@ public class AuthController {
                 authService.login(request, httpRequest, httpResponse);
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * GET /api/auth/csrf
+     * Give csrf token to front end.
+     */
+    @GetMapping("/csrf")
+    public CsrfToken csrf(CsrfToken csrfToken) {
+        return csrfToken;
     }
 }

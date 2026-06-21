@@ -9,6 +9,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.anonymous;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -27,7 +30,7 @@ import edu.franklin.cecas.dto.ChangePasswordRequest;
 import edu.franklin.cecas.dto.UserDTO;
 
 @WebMvcTest(controllers = UserController.class)
-@Import({SecurityConfig.class, GlobalExceptionHandler.class})
+@Import({ SecurityConfig.class, GlobalExceptionHandler.class })
 public class UserControllerTest {
 
     @Autowired
@@ -39,7 +42,7 @@ public class UserControllerTest {
     @MockitoBean
     private UserService userService;
 
-   private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     @WithMockUser(username = "chair@test.com", roles = { "CHAIR" })
@@ -51,7 +54,6 @@ public class UserControllerTest {
 
         verify(userService).getStudentByStudentId(1001);
     }
-
 
     @Test
     @WithMockUser(username = "student@test.com", roles = { "STUDENT" })
@@ -78,6 +80,7 @@ public class UserControllerTest {
         doNothing().when(userService).changePassword(eq("student@test.com"), any(ChangePasswordRequest.class));
 
         mockMvc.perform(post("/api/users/change-password")
+                .with(csrf())
                 .contentType(APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk()).andDo(print());
@@ -93,6 +96,7 @@ public class UserControllerTest {
         doNothing().when(userService).changePassword(eq("chair@test.com"), any(ChangePasswordRequest.class));
 
         mockMvc.perform(post("/api/users/force-change-password")
+                .with(csrf())
                 .contentType(APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(req)))
                 .andExpect(status().isOk())
@@ -100,5 +104,60 @@ public class UserControllerTest {
 
         verify(userService).isMustChangePassword("chair@test.com");
         verify(userService).changePassword(eq("chair@test.com"), any(ChangePasswordRequest.class));
+    }
+
+    /**
+     * Tests that an anonymous users are blocked from /api/users/me
+     * 
+     * @throws Exception
+     */
+    @Test
+    void testGetUserProfileRequiresAuthentication() throws Exception {
+        mockMvc.perform(get("/api/users/me").with(anonymous()))
+                .andExpect(status().isUnauthorized());
+    }
+
+    /**
+     * Tests that the student is blocked from a chair only route.
+     * 
+     * @throws Exception
+     */
+    @Test
+    @WithMockUser(username = "student@test.com", roles = { "STUDENT" })
+    void testStudentCannotGetStudentByStudentId() throws Exception {
+        mockMvc.perform(get("/api/users/1001"))
+                .andExpect(status().isForbidden());
+    }
+
+    /**
+     * Tests that student is blocked from chair password flow.
+     * @throws Exception
+     */
+    @Test
+    @WithMockUser(username = "student@test.com", roles = { "STUDENT" })
+    void testStudentCannotForceChangePassword() throws Exception {
+        ChangePasswordRequest req = new ChangePasswordRequest("tempPass", "newPassword", "newPassword");
+
+        mockMvc.perform(post("/api/users/force-change-password")
+                .with(csrf())
+                .contentType(APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isForbidden());
+    }
+
+    /**
+     * Tests that anonymous user is blocked from change password.
+     * @throws Exception
+     */
+    @Test
+    void testChangePasswordRequiresAuthentication() throws Exception {
+        ChangePasswordRequest req = new ChangePasswordRequest("currentPass", "newPassword", "newPassword");
+
+        mockMvc.perform(post("/api/users/change-password")
+                .with(anonymous())
+                .with(csrf())
+                .contentType(APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(req)))
+                .andExpect(status().isUnauthorized());
     }
 }

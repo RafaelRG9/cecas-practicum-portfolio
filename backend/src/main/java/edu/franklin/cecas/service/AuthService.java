@@ -1,5 +1,7 @@
 package edu.franklin.cecas.service;
 
+import java.util.Locale;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -48,7 +50,9 @@ public class AuthService {
 
     public CurrentUserResponse register(RegisterRequest request) {
 
-        if (userRepository.existsByEmail(request.getEmail())) {
+        String normalizedEmail = normalizeEmail(request.getEmail());
+
+        if (userRepository.existsByEmailIgnoreCase(normalizedEmail)) {
             throw new EmailAlreadyExistsException("An account with this email already exists.");
         }
 
@@ -57,7 +61,7 @@ public class AuthService {
         }
 
         User user = new User();
-        user.setEmail(request.getEmail());
+        user.setEmail(normalizedEmail);
         user.setFullName(request.getFullName());
         user.setProgram(request.getProgram());
         user.setRole(request.getRole());
@@ -74,9 +78,12 @@ public class AuthService {
 
     public CurrentUserResponse login(LoginRequest request,HttpServletRequest httpRequest,
             HttpServletResponse httpResponse) {
+
+        String normalizedEmail = normalizeEmail(request.getEmail());
+
         try {
             UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(
-                    request.getEmail(),
+                    normalizedEmail,
                     request.getPassword());
 
             Authentication authentication = authenticationManager.authenticate(authRequest);
@@ -102,4 +109,8 @@ public class AuthService {
             throw new InvalidCredentialsException("Invalid email or password.");
         }
     }
+
+    private String normalizeEmail(String email) {
+    return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+}
 }

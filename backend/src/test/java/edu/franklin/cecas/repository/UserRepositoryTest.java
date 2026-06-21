@@ -61,11 +61,11 @@ public class UserRepositoryTest {
     }
     
     @Test
-    public void testExistsByEmail() {
+    public void testExistsByEmailIgnoreCase() {
         User user = createTestUser();
         userRepository.save(user);
 
-        boolean exists = userRepository.existsByEmail("john@test.com");
+        boolean exists = userRepository.existsByEmailIgnoreCase("John@Test.com");
 
         assertThat(exists).isTrue();
     }
