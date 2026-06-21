@@ -19,7 +19,6 @@ import edu.franklin.cecas.repository.ExtraCreditRequestRepository;
 import edu.franklin.cecas.repository.UserRepository;
 import jakarta.transaction.Transactional;
 
-
 @Service
 @Transactional
 public class ExtraCreditRequestService {
@@ -48,7 +47,7 @@ public class ExtraCreditRequestService {
             Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found with ID: " + dto.getCategoryId()));
 
-            User student = userRepository.findByEmail(studentEmail)
+            User student = userRepository.findByEmailIgnoreCase(studentEmail)
                 .orElseThrow(() -> new RuntimeException("Student not found with Email: " + studentEmail));
             if (student.getRole() != UserRole.STUDENT) {
                 throw new RuntimeException("Unauthorized: User is not a student");
@@ -73,7 +72,7 @@ public class ExtraCreditRequestService {
 
         //Get a list of all requests
         public List<ExtraCreditResponseDTO> getRequestsForStudent(String studentEmail) {  
-        User student = userRepository.findByEmail(studentEmail)  
+        User student = userRepository.findByEmailIgnoreCase(studentEmail)  
             .orElseThrow(() -> new RuntimeException("User not found"));  
 
         return requestRepository.findByStudent_StudentId(student.getStudentId()).stream()  
