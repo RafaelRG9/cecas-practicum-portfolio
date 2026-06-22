@@ -45,6 +45,11 @@ The seed process should work in this order:
 
 This means the system should reject all bad seed data before making database changes.
 
+## Convention For Parsing Error Line Numbers
+- HEADER_ROW = 1
+- FIRST_DATA_ROW = 2
+- FILE_ERROR_ROW = 0
+
 ## Normalization Rules
 Before the data is saved, the seed process should normalize values so matching is consistent.
 

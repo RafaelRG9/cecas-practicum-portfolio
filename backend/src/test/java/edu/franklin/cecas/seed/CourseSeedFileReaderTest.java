@@ -1,0 +1,136 @@
+package edu.franklin.cecas.seed;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import edu.franklin.cecas.exception.SeedValidationException;
+
+public class CourseSeedFileReaderTest {
+
+    @TempDir
+    Path tempDir;
+
+    private final CourseSeedFileReader reader = new CourseSeedFileReader();
+
+    private Path writeCSV(String fileName, String contents) throws IOException {
+        Path file = tempDir.resolve(fileName);
+        Files.writeString(file, contents);
+        return file;
+    }
+
+    /**
+     * Verifies that course rows are trimmed and uppercased.
+     * @throws IOException
+     */
+    @Test
+    void testReadNormalizesCourseRows() throws IOException {
+        Path file = writeCSV("courses.csv", """
+            course_code,term,section
+             comp-110 , 26/fa , h1ww
+            COMP-220,27/sp,h2ww
+            """); 
+
+        List<CourseSeedRow> rows = reader.read(file);
+
+        assertEquals(2, rows.size());
+        assertEquals(new CourseSeedRow("COMP-110", "26/FA", "H1WW"), rows.get(0));
+        assertEquals(new CourseSeedRow("COMP-220", "27/SP", "H2WW"), rows.get(1));
+    }
+
+    /**
+     * Verifies that no course code fails validation.
+     * @throws IOException
+     */
+    @Test
+    void testBlankCourseCodeFails() throws IOException {
+        Path file = writeCSV("courses.csv", """
+            course_code,term,section
+              ,26/FA,H1WW
+            """);
+
+        SeedValidationException ex = assertThrows(
+                SeedValidationException.class,
+                () -> reader.read(file));
+        
+        SeedValidationError error = ex.getErrors().get(0);
+        assertEquals("courses.csv", error.fileName());
+        assertEquals(2L, error.row());
+        assertEquals("course_code", error.fieldOrRule());
+        assertEquals("Course code is required.", error.message());        
+    }
+
+    /**
+     * Verifies that no term fails validation.
+     * @throws IOException
+     */
+    @Test
+    void testBlankTermFails() throws IOException {
+        Path file = writeCSV("courses.csv", """
+                course_code,term,section
+                COMP-110,    ,H1WW
+                """);
+        
+        SeedValidationException ex = assertThrows(
+                SeedValidationException.class,
+                () -> reader.read(file));
+
+        SeedValidationError error = ex.getErrors().get(0);
+        assertEquals("courses.csv", error.fileName());
+        assertEquals(2L, error.row());
+        assertEquals("term", error.fieldOrRule());
+        assertEquals("Term is required.", error.message());        
+    }
+
+    /**
+     * Verifies that no term fails validation.
+     * @throws IOException
+     */
+    @Test
+    void testBlankSectionFails() throws IOException {
+        Path file = writeCSV("courses.csv", """
+                course_code,term,section
+                COMP-110,26/FA,   
+                """);
+
+        SeedValidationException ex = assertThrows(
+                SeedValidationException.class,
+                () -> reader.read(file));
+
+        SeedValidationError error = ex.getErrors().get(0);
+        assertEquals("courses.csv", error.fileName());
+        assertEquals(2L, error.row());
+        assertEquals("section", error.fieldOrRule());
+        assertEquals("Section is required.", error.message());        
+    }
+
+    /**
+     * Verifies duplicate normalized course key fails validation.
+     * @throws IOException
+     */
+    @Test
+    void testDuplicateNormalizedCourseKeyFails() throws IOException {
+        Path file = writeCSV("courses.csv", """
+                course_code,term,section
+                 comp-110 , 26/fa , h1ww
+                COMP-110,26/FA,H1WW 
+                """);
+        
+        SeedValidationException ex = assertThrows(
+                SeedValidationException.class,
+                () -> reader.read(file));
+
+        SeedValidationError error = ex.getErrors().get(0);
+        assertEquals("courses.csv", error.fileName());
+        assertEquals(3L, error.row());
+        assertEquals("course_key", error.fieldOrRule());
+        assertEquals("Duplicate course row found after normalization.", error.message());        
+    }
+}
