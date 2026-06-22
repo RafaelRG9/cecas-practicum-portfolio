@@ -1,4 +1,4 @@
-package edu.franklin.cecas.service;
+package edu.franklin.cecas.exception;
 
 public class PointCapExceededException extends RuntimeException {
     

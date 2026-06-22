@@ -1,4 +1,4 @@
-package edu.franklin.cecas.exception;
+package edu.franklin.cecas.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -6,6 +6,7 @@ import java.util.List;
 
 import edu.franklin.cecas.domain.ExtraCreditRequest;
 import edu.franklin.cecas.domain.ExtraCreditRequestStatus;
+import edu.franklin.cecas.exception.PointCapExceededException;
 import edu.franklin.cecas.repository.ExtraCreditRequestRepository;
 
 @Service
@@ -20,7 +21,7 @@ public class PointAllocationService {
     }
 
     public int getUsedPoints(Integer studentId) {
-        List<ExtraCreditRequest> approvedRequests = requestRepository.findByStudent_StudentIdAndStatus(studentId, ExtraCreditRequestStatus.APPROVED);
+        List<ExtraCreditRequest> approvedRequests = requestRepository.findByStudent_IdAndStatus(studentId, ExtraCreditRequestStatus.APPROVED);
 
         int usedPoints = 0;
 
