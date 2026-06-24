@@ -79,4 +79,12 @@ public class ExtraCreditRequestService {
             .map(ExtraCreditResponseDTO::new)  
             .collect(Collectors.toList());
         }
+
+        public List<ExtraCreditResponseDTO> getAllRequests() {
+            return requestRepository.findAll()
+                .stream()
+                .map(request -> new ExtraCreditResponseDTO(request))
+                //.map(ExtraCreditResponseDTO::new)
+                .toList();
+}
 }
