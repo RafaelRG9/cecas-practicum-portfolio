@@ -46,7 +46,7 @@ public class CategorySeedImporterTest {
     void testImportCategoriesInsertsNewCategory() {
         CategorySeedImportResult result = importer.importCategories(List.of(
                 new CategorySeedRow("Participation", "Answering a question", 10)));
-        
+
         List<Category> categories = categoryRepository.findAll();
 
         assertThat(categories).hasSize(1);
@@ -59,11 +59,12 @@ public class CategorySeedImporterTest {
         assertThat(savedCategory.isActive()).isTrue();
         assertThat(savedCategory.getCategoryId()).isNotNull();
 
-        assertThat(result).isEqualTo(new CategorySeedImportResult(1,0,0,0,0));
+        assertThat(result).isEqualTo(new CategorySeedImportResult(1, 0, 0, 0, 0));
     }
 
     /**
-     * Verifies that a matching inactive category is reactivated and counted only as reactivated.
+     * Verifies that a matching inactive category is reactivated and counted only as
+     * reactivated.
      */
     @Test
     void testReactivatesInactiveCategoryWhenRestored() {
@@ -94,7 +95,8 @@ public class CategorySeedImporterTest {
     }
 
     /**
-     * Verifies that a capitalization-only name change updates the existing category rather than creating a new row.
+     * Verifies that a capitalization-only name change updates the existing category
+     * rather than creating a new row.
      */
     @Test
     void testCapitalizationOnlyChangeUpdatesExistingCategory() {
@@ -123,7 +125,8 @@ public class CategorySeedImporterTest {
     }
 
     /**
-     * Verifies that description and default points are updated for an existing active category.
+     * Verifies that description and default points are updated for an existing
+     * active category.
      */
     @Test
     void testUpdatesDescriptionAndDefaultPointsForExistingActiveCategory() {
@@ -152,7 +155,8 @@ public class CategorySeedImporterTest {
     }
 
     /**
-     * Verifies that an existing active category with matching values is counted as unchanged.
+     * Verifies that an existing active category with matching values is counted as
+     * unchanged.
      */
     @Test
     void testCountsExistingActiveCategoryAsUnchangedWhenValuesMatch() {
@@ -177,7 +181,8 @@ public class CategorySeedImporterTest {
     }
 
     /**
-     * Verifies that active categories missing from the seed data are marked inactive rather than deleted.
+     * Verifies that active categories missing from the seed data are marked
+     * inactive rather than deleted.
      */
     @Test
     void testDeactivatesActiveCategoriesMissingFromSeedData() {
@@ -213,7 +218,8 @@ public class CategorySeedImporterTest {
     }
 
     /**
-     * Verifies that categories already inactive are not counted as deactivated again when absent from the seed data.
+     * Verifies that categories already inactive are not counted as deactivated
+     * again when absent from the seed data.
      */
     @Test
     void testDoesNotCountAlreadyInactiveCategoryAsDeactivatedAgain() {
@@ -242,7 +248,8 @@ public class CategorySeedImporterTest {
     }
 
     /**
-     * Verifies that a meaningful category name change creates a new category and deactivates the old category.
+     * Verifies that changing a category name to a different normalized match key
+     * creates a new category and deactivates the previously active one.
      */
     @Test
     void testMeaningfulNameChangeCreatesNewCategoryAndDeactivatesOldCategory() {
@@ -274,7 +281,8 @@ public class CategorySeedImporterTest {
     }
 
     /**
-     * Verifies that re-importing the same category seed data does not create duplicate categories.
+     * Verifies that re-importing the same category seed data does not create
+     * duplicate categories.
      */
     @Test
     void testImportCategoriesDoesNotCreateDuplicatesWhenReRunWithSameData() {

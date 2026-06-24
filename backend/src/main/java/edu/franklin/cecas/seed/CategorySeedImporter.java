@@ -37,6 +37,8 @@ public class CategorySeedImporter {
         int reactivated = 0;
         int deactivated = 0;
 
+        // Match existing categories by normalized name so seed sync treats casing-only
+        // differences as updates to one logical category, not new records.
         for (Category category : categories) {
             existingByName.put(normalizeCategoryName(category.getCategoryName()), category);
         }
@@ -64,7 +66,7 @@ public class CategorySeedImporter {
                 reactivated++;
             } else {
                 boolean changed = false;
-
+                // Keep the CSV's trimmed display name even though matching is case-insensitive.
                 String csvDisplayName = row.categoryName().trim();
 
                 if (!existingCategory.getCategoryName().equals(csvDisplayName)) {
@@ -93,7 +95,8 @@ public class CategorySeedImporter {
 
         for (Category category : categories) {
             String normalizedDbName = normalizeCategoryName(category.getCategoryName());
-
+            // Categories removed from the seed file are deactivated rather than deleted so
+            // historical request data can keep pointing at the same records.
             if (!currentCategories.contains(normalizedDbName) && category.isActive()) {
                 category.setActive(false);
                 toUpdate.add(category);

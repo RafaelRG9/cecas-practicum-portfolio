@@ -31,15 +31,15 @@ public class ChairSeedFileReaderTest {
 
     /**
      * Verifies that chair rows are normalized correctly.
-     * @throws IOException
      */
     @Test
     void testReadNormalizesValidChairRows() throws IOException {
-        Path file = writeCSV("chairs.csv", """
-                email,full_name,program,course_codes,temp_password
-                 Grace.Hopper@Email.Franklin.edu , Grace Hopper , Computer Science , comp-110 | comp-120 | comp-210 , ChairTemp01!
-                ada.lovelace@email.franklin.edu,Ada Lovelace,Computer Science,COMP-220|COMP-230,ChairTemp02!
-                """);
+        Path file = writeCSV("chairs.csv",
+                """
+                        email,full_name,program,course_codes,temp_password
+                         Grace.Hopper@Email.Franklin.edu , Grace Hopper , Computer Science , comp-110 | comp-120 | comp-210 , ChairTemp01!
+                        ada.lovelace@email.franklin.edu,Ada Lovelace,Computer Science,COMP-220|COMP-230,ChairTemp02!
+                        """);
 
         List<ChairSeedRow> rows = reader.read(file);
 
@@ -64,14 +64,14 @@ public class ChairSeedFileReaderTest {
 
     /**
      * Verifies that course codes are split, trimmed, uppercased, and deduplicated.
-     * @throws IOException
      */
     @Test
     void testCourseCodesAreSplitTrimmedUppercasedAndDeduplicated() throws IOException {
-        Path file = writeCSV("chairs.csv", """
-                email,full_name,program,course_codes,temp_password
-                grace.hopper@email.franklin.edu,Grace Hopper,Computer Science, comp-110 | COMP-110 | comp-120 |   ,ChairTemp01!
-                """);
+        Path file = writeCSV("chairs.csv",
+                """
+                        email,full_name,program,course_codes,temp_password
+                        grace.hopper@email.franklin.edu,Grace Hopper,Computer Science, comp-110 | COMP-110 | comp-120 |   ,ChairTemp01!
+                        """);
 
         List<ChairSeedRow> rows = reader.read(file);
 
@@ -83,7 +83,6 @@ public class ChairSeedFileReaderTest {
 
     /**
      * Verifies that blank email fails validation.
-     * @throws IOException
      */
     @Test
     void testBlankEmailFails() throws IOException {
@@ -105,7 +104,6 @@ public class ChairSeedFileReaderTest {
 
     /**
      * Verifies that invalid email fails validation.
-     * @throws IOException
      */
     @Test
     void testInvalidEmailFails() throws IOException {
@@ -127,7 +125,6 @@ public class ChairSeedFileReaderTest {
 
     /**
      * Verifies that blank full name fails validation.
-     * @throws IOException
      */
     @Test
     void testBlankFullNameFails() throws IOException {
@@ -149,7 +146,6 @@ public class ChairSeedFileReaderTest {
 
     /**
      * Verifies that blank program fails validation.
-     * @throws IOException
      */
     @Test
     void testBlankProgramFails() throws IOException {
@@ -170,8 +166,8 @@ public class ChairSeedFileReaderTest {
     }
 
     /**
-     * Verifies that empty normalized course codes fails validation.
-     * @throws IOException
+     * Verifies that course_codes fails validation when normalization leaves no
+     * usable course codes.
      */
     @Test
     void testEmptyNormalizedCourseCodesFail() throws IOException {
@@ -193,13 +189,12 @@ public class ChairSeedFileReaderTest {
 
     /**
      * Verifies that blank temp password fails validation.
-     * @throws IOException
      */
     @Test
     void testBlankTempPasswordFails() throws IOException {
         Path file = writeCSV("chairs.csv", """
                 email,full_name,program,course_codes,temp_password
-                grace.hopper@email.franklin.edu,Grace Hopper,Computer Science,COMP-110|COMP-120,   
+                grace.hopper@email.franklin.edu,Grace Hopper,Computer Science,COMP-110|COMP-120,
                 """);
 
         SeedValidationException ex = assertThrows(
@@ -215,7 +210,6 @@ public class ChairSeedFileReaderTest {
 
     /**
      * Verifies that duplicate normalized emails fail validation.
-     * @throws IOException
      */
     @Test
     void testDuplicateNormalizedEmailFails() throws IOException {
@@ -238,7 +232,6 @@ public class ChairSeedFileReaderTest {
 
     /**
      * Verifies that password values do not appear in errors.
-     * @throws IOException
      */
     @Test
     void testPasswordValueDoesNotAppearInErrors() throws IOException {

@@ -28,25 +28,23 @@ public class CategorySeedFileReaderTest {
 
     /**
      * Verifies that category rows are normalized and default points parsed.
-     * @throws IOException
      */
     @Test
     void testReadNormalizesValidCategoryRows() throws IOException {
         Path file = writeCSV("categories.csv", """
                 category_name,description,default_points
                 Participation,Coming to class,5
-                  Approved Seminar , Went to Seminar, 10  
+                  Approved Seminar , Went to Seminar, 10
                 """);
-        
+
         List<CategorySeedRow> rows = reader.read(file);
         assertEquals(2, rows.size());
         assertEquals(new CategorySeedRow("Participation", "Coming to class", 5), rows.get(0));
-        assertEquals(new CategorySeedRow("Approved Seminar", "Went to Seminar", 10), rows.get(1));   
+        assertEquals(new CategorySeedRow("Approved Seminar", "Went to Seminar", 10), rows.get(1));
     }
 
-        /**
+    /**
      * Verifies that quoted descriptions containing commas are parsed correctly.
-     * @throws IOException
      */
     @Test
     void testQuotedDescriptionWithCommaParsesCorrectly() throws IOException {
@@ -65,7 +63,6 @@ public class CategorySeedFileReaderTest {
 
     /**
      * Verifies that blank category name fails validation.
-     * @throws IOException
      */
     @Test
     void testBlankCategoryNameFails() throws IOException {
@@ -87,7 +84,6 @@ public class CategorySeedFileReaderTest {
 
     /**
      * Verifies that blank description fails validation.
-     * @throws IOException
      */
     @Test
     void testBlankDescriptionFails() throws IOException {
@@ -109,13 +105,12 @@ public class CategorySeedFileReaderTest {
 
     /**
      * Verifies that blank default points fails validation.
-     * @throws IOException
      */
     @Test
     void testBlankDefaultPointsFails() throws IOException {
         Path file = writeCSV("categories.csv", """
                 category_name,description,default_points
-                Participation,Coming to class,   
+                Participation,Coming to class,
                 """);
 
         SeedValidationException ex = assertThrows(
@@ -131,7 +126,6 @@ public class CategorySeedFileReaderTest {
 
     /**
      * Verifies that non-integer default points fails validation.
-     * @throws IOException
      */
     @Test
     void testNonIntegerDefaultPointsFails() throws IOException {
@@ -153,7 +147,6 @@ public class CategorySeedFileReaderTest {
 
     /**
      * Verifies that negative default points fails validation.
-     * @throws IOException
      */
     @Test
     void testNegativeDefaultPointsFails() throws IOException {
@@ -174,8 +167,8 @@ public class CategorySeedFileReaderTest {
     }
 
     /**
-     * Verifies that duplicate category names fail after case-insensitive normalization.
-     * @throws IOException
+     * Verifies that duplicate category names fail after case-insensitive
+     * normalization.
      */
     @Test
     void testDuplicateCategoryNamesIgnoringCaseFail() throws IOException {

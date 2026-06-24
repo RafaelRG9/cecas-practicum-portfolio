@@ -29,9 +29,8 @@ public class SeedDataParserTest {
     }
 
     /**
-     * Verifies that all files can be parsed from the single parsing orchestrator.
-     * 
-     * @throws IOException
+     * Verifies that parseAll reads and returns normalized course, chair, and
+     * category data when all seed files are valid.
      */
     @Test
     void parseAllReturnsParsedSeedDataForValidFiles() throws IOException {
@@ -97,8 +96,6 @@ public class SeedDataParserTest {
 
     /**
      * Verifies that a chair course code not in courses.csv returns an error.
-     * 
-     * @throws IOException
      */
     @Test
     void parseAllRejectsUnknownChairCourseCode() throws IOException {
@@ -138,9 +135,8 @@ public class SeedDataParserTest {
     }
 
     /**
-     * Verifies that a normalized chair course code succeeds;
-     * 
-     * @throws IOException
+     * Verifies that a normalized chair course code passes cross-file validation
+     * when it matches a course from courses.csv.
      */
     @Test
     void testNormalizedChairCourseCodeSucceedsWithValidCourse() throws IOException {
@@ -175,8 +171,6 @@ public class SeedDataParserTest {
     /**
      * Verifies that errors from parsing are aggregated rather than thrown
      * immediately.
-     *
-     * @throws IOException
      */
     @Test
     void testParseAllAggregatedErrorsFromMultipleFiles() throws IOException {
@@ -223,8 +217,6 @@ public class SeedDataParserTest {
     /**
      * Verifies that file-level and cross-file validation errors are aggregated
      * into one SeedValidationException.
-     *
-     * @throws IOException
      */
     @Test
     void testParseAllAggregatesFileLevelAndCrossFileErrors() throws IOException {

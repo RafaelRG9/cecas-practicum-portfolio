@@ -36,6 +36,8 @@ abstract class AbstractSeedCsvReader<T> {
                         new SeedValidationError(fileName(), 1, "header", "Header row is missing.")));
             }
 
+            // Parse and validate the raw header line separately so we can reject duplicate
+            // or misordered columns before mapping any data rows.
             CSVParser headerParser = CSVParser.parse(headerLine, CSVFormat.DEFAULT);
             List<CSVRecord> headerRecords = headerParser.getRecords();
             List<String> actualHeaders = headerRecords.get(0).toList();
@@ -59,6 +61,8 @@ abstract class AbstractSeedCsvReader<T> {
 
             try (CSVParser parser = dataFormat.parse(reader)) {
                 for (CSVRecord record : parser) {
+                    // Commons CSV numbers data records starting at 1, so add 1 to report the
+                    // physical file row number after the header row.
                     long physicalRow = record.getRecordNumber() + 1;
 
                     if (record.size() != expectedHeaders().size()) {

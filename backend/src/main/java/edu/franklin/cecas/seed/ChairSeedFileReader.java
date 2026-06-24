@@ -39,6 +39,8 @@ public class ChairSeedFileReader extends AbstractSeedCsvReader<ChairSeedRow> {
 
     @Override
     protected ChairSeedRow mapRecord(CSVRecord record, long physicalRowNumber, List<SeedValidationError> errors) {
+        // Chairs are matched by normalized email, so store the lowercase form from the
+        // start.
         String email = record.get("email").trim().toLowerCase(Locale.ROOT);
         String fullName = record.get("full_name").trim();
         String program = record.get("program").trim();
@@ -90,12 +92,17 @@ public class ChairSeedFileReader extends AbstractSeedCsvReader<ChairSeedRow> {
         return new ChairSeedRow(email, fullName, program, course_codes, temporaryPassword);
     }
 
+    // Reset per-file duplicate tracking because this reader bean is reused across
+    // seed runs.
     @Override
     public List<ChairSeedRow> read(Path file) {
         seenEmails = new HashSet<>();
         return super.read(file);
     }
 
+    // Normalize the pipe-delimited course list to match seed rules: trim,
+    // uppercase,
+    // drop blanks, and remove duplicates while preserving CSV order.
     private Set<String> normalizeCourseCodes(String rawCourseCodes) {
         if (rawCourseCodes == null) {
             return new LinkedHashSet<>();

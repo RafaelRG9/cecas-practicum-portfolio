@@ -64,8 +64,6 @@ public class SharedSeedCsvReaderTest {
 
     /**
      * Verifies that an empty file returns error with row 1.
-     * 
-     * @throws IOException
      */
     @Test
     void testEmptyFileShowsRowOneError() throws IOException {
@@ -81,8 +79,6 @@ public class SharedSeedCsvReaderTest {
 
     /**
      * Verifies that a duplicate header returns error with row 1.
-     * 
-     * @throws IOException
      */
     @Test
     void testDuplicateHeaderShowsRowOneError() throws IOException {
@@ -102,9 +98,7 @@ public class SharedSeedCsvReaderTest {
     }
 
     /**
-     * Verifies that headers in the wrong order returns error with row 1.
-     * 
-     * @throws IOException
+     * Verifies that headers in the wrong order fail validation at row 1.
      */
     @Test
     void testWrongHeaderOrderShowsRowOneError() throws IOException {
@@ -124,9 +118,7 @@ public class SharedSeedCsvReaderTest {
     }
 
     /**
-     * Verifies that missing header returns error with row 1.
-     * 
-     * @throws IOException
+     * Verifies that a missing expected header fails validation at row 1.
      */
     @Test
     void testMissingHeaderShowsRowOneError() throws IOException {
@@ -143,9 +135,7 @@ public class SharedSeedCsvReaderTest {
     }
 
     /**
-     * Verifies that extra header returns error with row 1.
-     * 
-     * @throws IOException
+     * Verifies that an unexpected extra header fails validation at row 1.
      */
     @Test
     void testExtraHeaderShowsRowOneError() throws IOException {
@@ -162,11 +152,8 @@ public class SharedSeedCsvReaderTest {
     }
 
     /**
-     * Verifies that a malformed row returns error with row error occurred and count
-     * with
-     * expected vs actual columns.
-     * 
-     * @throws IOException
+     * Verifies that a malformed row reports the physical row number and the
+     * expected-versus-actual column count.
      */
     @Test
     void testMalformedRowShowsRowNumber() throws IOException {
@@ -188,8 +175,6 @@ public class SharedSeedCsvReaderTest {
 
     /**
      * Verifies that the first actual data row is row 2.
-     * 
-     * @throws IOException
      */
     @Test
     void testFirstDataRowIsRowTwo() throws IOException {
@@ -203,5 +188,4 @@ public class SharedSeedCsvReaderTest {
 
         assertEquals(List.of("2:a:b", "3:c:d"), rows);
     }
-
 }

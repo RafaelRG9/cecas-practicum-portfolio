@@ -53,16 +53,18 @@ public class CategorySeedFileReader extends AbstractSeedCsvReader<CategorySeedRo
 
             if (defaultPoints < 0) {
                 errors.add(new SeedValidationError(fileName(), physicalRowNumber,
-            "default_points", "Default points must be greater than or equal to 0."));
-            return null;
+                        "default_points", "Default points must be greater than or equal to 0."));
+                return null;
             }
-        
+
         } catch (NumberFormatException e) {
             errors.add(new SeedValidationError(fileName(), physicalRowNumber,
                     "default_points", "Default points must be a valid integer."));
             return null;
         }
 
+        // Normalize to a case-insensitive key so "Labs" and "labs" count as the same
+        // category.
         String key = categoryName.toLowerCase(Locale.ROOT);
         if (seenCategoryNames.add(key) == false) {
             errors.add(new SeedValidationError(fileName(), physicalRowNumber,
@@ -73,6 +75,8 @@ public class CategorySeedFileReader extends AbstractSeedCsvReader<CategorySeedRo
         return new CategorySeedRow(categoryName, description, defaultPoints);
     }
 
+    // Reset per-file duplicate tracking because this reader bean is reused across
+    // seed runs.
     @Override
     public List<CategorySeedRow> read(Path file) {
         seenCategoryNames = new HashSet<>();

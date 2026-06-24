@@ -37,6 +37,8 @@ public class SeedDataParser {
         List<CategorySeedRow> categories = null;
         List<SeedValidationError> errors = new ArrayList<>();
 
+        // Parse each file independently so we can collect all seed validation errors
+        // before aborting the run.
         try {
             courses = courseSeedFileReader.read(coursesPath);
         } catch (SeedValidationException ex) {
@@ -55,11 +57,13 @@ public class SeedDataParser {
             errors.addAll(ex.getErrors());
         }
 
+        // Only run cross-file validation when both source files parsed successfully.
         if (courses != null && chairs != null) {
             Set<String> knownCourseCodes = courses.stream()
                     .map(CourseSeedRow::courseCode)
                     .collect(Collectors.toSet());
 
+            // Convert the zero-based list index back to the physical CSV row number.
             for (int i = 0; i < chairs.size(); i++) {
                 ChairSeedRow chair = chairs.get(i);
                 long rowNumber = i + 2;

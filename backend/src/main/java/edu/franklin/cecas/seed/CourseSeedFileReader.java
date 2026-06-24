@@ -47,6 +47,7 @@ public class CourseSeedFileReader extends AbstractSeedCsvReader<CourseSeedRow> {
             return null;
         }
 
+        // Courses are unique by normalized course_code + term + section.
         String key = courseCode + "|" + term + "|" + section;
         if (seenCourseKeys.add(key) == false) {
             errors.add(new SeedValidationError(fileName(), physicalRowNumber,
@@ -57,6 +58,8 @@ public class CourseSeedFileReader extends AbstractSeedCsvReader<CourseSeedRow> {
         return new CourseSeedRow(courseCode, term, section);
     }
 
+    // Reset per-file duplicate tracking because this reader bean is reused across
+    // seed runs.
     @Override
     public List<CourseSeedRow> read(Path file) {
         seenCourseKeys = new HashSet<>();

@@ -122,8 +122,8 @@ public class CourseSeedImporterTest {
     }
 
     /**
-     * Verifies that when the natural key changes in a similar course that a new
-     * record is created.
+     * Verifies that changing any part of the course natural key creates a new
+     * course record and deactivates the previously active one.
      */
     @Test
     void testImportCoursesTreatsNaturalKeyChangeAsInsertAndDeactivate() {
