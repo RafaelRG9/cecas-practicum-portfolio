@@ -1,4 +1,4 @@
-package edu.franklin.cecas.controller;
+package edu.franklin.cecas.web;
 
 import java.util.List;
 
