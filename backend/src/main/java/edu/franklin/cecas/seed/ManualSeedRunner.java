@@ -16,7 +16,7 @@ import edu.franklin.cecas.exception.SeedValidationException;
 @DependsOnDatabaseInitialization
 public class ManualSeedRunner implements ApplicationRunner {
     
-    private static final Logger log = LoggerFactory.getLogger(SeedRunner.class);
+    private static final Logger log = LoggerFactory.getLogger(ManualSeedRunner.class);
     private final SeedService seedService;
 
     public ManualSeedRunner(SeedService seedService) {

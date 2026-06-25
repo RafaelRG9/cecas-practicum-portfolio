@@ -115,6 +115,30 @@ To reset services and delete local database data (should not be needed often):
 docker compose down -v
 ```
 
+### Seed Data
+A clean Docker startup will run Flyway migrations first and then load the seed files when startup seeding is enabled.
+
+The backend reads seed files from the repository `seed/` directory:
+- `courses.csv`
+- `categories.csv`
+- `chairs.csv`
+
+Important behavior:
+- Editing a CSV file by itself does not change the running database.
+- Seed changes are only applied when the backend starts with seeding enabled, or when you run the manual reseed command.
+- The seed directory is mounted into the backend container as read-only, so seed file updates do not require Java code changes or rebuilding the backend image.
+
+To apply updated seed files without resetting the database:
+```bash
+make seed
+```
+Use this command for normal reseeding after editing a seed CSV.
+To completely reset the local database and rebuild it from Flyway migrations plus the current seed files:
+```bash
+make reset-db
+```
+make reset-db is destructive and is only meant for local development. It is not the normal way to apply seed file changes.
+
 ## Git Workflow
 Follow these steps to ensure your local code is synchronized with the team's progress.
 
