@@ -1,8 +1,10 @@
 package edu.franklin.cecas.seed;
 
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 
+@Service
 public class SeedService {
     private final SeedDataParser seedDataParser;
     private final CategorySeedImporter categorySeedImporter;

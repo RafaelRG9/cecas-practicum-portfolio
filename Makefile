@@ -1,3 +1,5 @@
+.PHONY: seed reset-db
+
 seed:
 	docker compose run --rm \
 		-e SPRING_PROFILES_ACTIVE=seed \

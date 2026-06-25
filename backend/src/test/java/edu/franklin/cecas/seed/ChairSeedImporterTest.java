@@ -18,7 +18,6 @@ import edu.franklin.cecas.domain.Course;
 import edu.franklin.cecas.domain.User;
 import edu.franklin.cecas.domain.UserRole;
 import edu.franklin.cecas.exception.SeedSynchronizationException;
-import edu.franklin.cecas.repository.CategoryRepository;
 import edu.franklin.cecas.repository.ChairCourseAssignmentRepository;
 import edu.franklin.cecas.repository.CourseRepository;
 import edu.franklin.cecas.repository.UserRepository;
@@ -27,6 +26,7 @@ import edu.franklin.cecas.service.PasswordService;
 import edu.franklin.cecas.support.MySqlDataJpaTest;
 
 @MySqlDataJpaTest
+@SuppressWarnings("unused")
 @Import({ ChairSeedImporter.class, PasswordService.class, SecurityConfig.class })
 public class ChairSeedImporterTest {
 
@@ -41,9 +41,6 @@ public class ChairSeedImporterTest {
 
     @Autowired
     private ChairCourseAssignmentRepository assignmentRepository;
-
-    @Autowired
-    private CategoryRepository categoryRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
