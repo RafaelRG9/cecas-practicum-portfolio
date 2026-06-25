@@ -1,6 +1,7 @@
 package edu.franklin.cecas.seed;
 
 import java.nio.file.Path;
+import java.util.regex.Pattern;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -11,6 +12,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class CourseSeedFileReader extends AbstractSeedCsvReader<CourseSeedRow> {
+    // These patterns are applied after trim + uppercase normalization,
+    // so they define the accepted seed formats.
+    private static final Pattern COURSE_CODE_PATTERN = Pattern.compile("^[A-Z]+-\\d{3}$");
+    private static final Pattern TERM_PATTERN = Pattern.compile("^\\d{2}/(FA|SP|SU)$");
+    private static final Pattern SECTION_PATTERN = Pattern.compile("^[A-Z0-9]{4}$");
+
     private Set<String> seenCourseKeys = new HashSet<>();
 
     @Override
@@ -47,6 +54,26 @@ public class CourseSeedFileReader extends AbstractSeedCsvReader<CourseSeedRow> {
             return null;
         }
 
+        if (!COURSE_CODE_PATTERN.matcher(courseCode).matches()) {
+            errors.add(new SeedValidationError(fileName(), physicalRowNumber,
+                    "course_code", "Course code must match DEPT-123 format."));
+            return null;
+        }
+
+        if (!TERM_PATTERN.matcher(term).matches()) {
+            errors.add(new SeedValidationError(fileName(), physicalRowNumber,
+                    "term", "Term must match YY/FA, YY/SP, or YY/SU format."));
+            return null;
+        }
+
+        if (!SECTION_PATTERN.matcher(section).matches()) {
+            errors.add(new SeedValidationError(fileName(), physicalRowNumber,
+                    "section", "Section must be exactly four uppercase alphanumeric characters."));
+            return null;
+        }
+
+        // Duplicate detection uses the normalized natural key, so rows that differ
+        // only by casing or surrounding whitespace are treated as the same course.
         // Courses are unique by normalized course_code + term + section.
         String key = courseCode + "|" + term + "|" + section;
         if (seenCourseKeys.add(key) == false) {

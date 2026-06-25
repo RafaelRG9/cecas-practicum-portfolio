@@ -128,4 +128,90 @@ public class CourseSeedFileReaderTest {
         assertEquals("course_key", error.fieldOrRule());
         assertEquals("Duplicate course row found after normalization.", error.message());
     }
+
+    /**
+     * Verifies that normalized values that match the required formats are accepted.
+     */
+    @Test
+    void testNormalizedValuesThatMatchRequiredFormatsAreAccepted() throws IOException {
+        Path file = writeCSV("courses.csv", """
+                course_code,term,section
+                 comp-394 , 26/fa , h1ww
+                math-120,27/sp,001a
+                itec-310,26/su,2b3c
+                """);
+
+        List<CourseSeedRow> rows = reader.read(file);
+
+        assertEquals(3, rows.size());
+        assertEquals(new CourseSeedRow("COMP-394", "26/FA", "H1WW"), rows.get(0));
+        assertEquals(new CourseSeedRow("MATH-120", "27/SP", "001A"), rows.get(1));
+        assertEquals(new CourseSeedRow("ITEC-310", "26/SU", "2B3C"), rows.get(2));
+    }
+
+    /**
+     * Verifies that a raw course code value that normalizes to an invalid format
+     * fails validation.
+     */
+    @Test
+    void testInvalidNormalizedCourseCodeFails() throws IOException {
+        Path file = writeCSV("courses.csv", """
+                course_code,term,section
+                comp394,26/fa,h1ww
+                """);
+
+        SeedValidationException ex = assertThrows(
+                SeedValidationException.class,
+                () -> reader.read(file));
+
+        SeedValidationError error = ex.getErrors().get(0);
+        assertEquals("courses.csv", error.fileName());
+        assertEquals(2L, error.row());
+        assertEquals("course_code", error.fieldOrRule());
+        assertEquals("Course code must match DEPT-123 format.", error.message());
+    }
+
+    /**
+     * Verifies that a raw term value that normalizes to an invalid format fails
+     * validation.
+     */
+    @Test
+    void testInvalidNormalizedTermFails() throws IOException {
+        Path file = writeCSV("courses.csv", """
+                course_code,term,section
+                comp-394,fa/26,h1ww
+                """);
+
+        SeedValidationException ex = assertThrows(
+                SeedValidationException.class,
+                () -> reader.read(file));
+
+        SeedValidationError error = ex.getErrors().get(0);
+        assertEquals("courses.csv", error.fileName());
+        assertEquals(2L, error.row());
+        assertEquals("term", error.fieldOrRule());
+        assertEquals("Term must match YY/FA, YY/SP, or YY/SU format.", error.message());
+    }
+
+    /**
+     * Verifies that a raw section value that normalizes to an invalid format fails
+     * validation.
+     */
+    @Test
+    void testInvalidNormalizedSectionFails() throws IOException {
+        Path file = writeCSV("courses.csv", """
+                course_code,term,section
+                comp-394,26/fa,h1-w
+                """);
+
+        SeedValidationException ex = assertThrows(
+                SeedValidationException.class,
+                () -> reader.read(file));
+
+        SeedValidationError error = ex.getErrors().get(0);
+        assertEquals("courses.csv", error.fileName());
+        assertEquals(2L, error.row());
+        assertEquals("section", error.fieldOrRule());
+        assertEquals("Section must be exactly four uppercase alphanumeric characters.", error.message());
+    }
 }
