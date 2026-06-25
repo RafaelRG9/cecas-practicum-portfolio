@@ -110,9 +110,9 @@ To stop services:
 docker compose down
 ```
 
-To reset services and delete local database data (should not be needed often):
+For a full local database rebuild
 ```bash
-docker compose down -v
+make reset-db
 ```
 
 ### Seed Data
