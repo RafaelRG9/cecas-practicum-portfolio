@@ -1,7 +1,9 @@
 package edu.franklin.cecas.repository;
 
-import java.util.*;
-import edu.franklin.cecas.domain.*;
+import java.util.List;
+import java.util.Optional;
+import edu.franklin.cecas.domain.User;
+import edu.franklin.cecas.domain.UserRole;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserRepository extends JpaRepository<User, Integer> {

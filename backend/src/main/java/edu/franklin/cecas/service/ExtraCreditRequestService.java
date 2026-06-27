@@ -28,55 +28,53 @@ public class ExtraCreditRequestService {
     private final UserRepository userRepository;
 
     public ExtraCreditRequestService(
-        ExtraCreditRequestRepository requestRepository,
-        CourseRepository courseRepository,
-        CategoryRepository categoryRepository,
-        UserRepository userRepository) {
-            this.requestRepository = requestRepository;
-            this.courseRepository = courseRepository;
-            this.categoryRepository = categoryRepository;
-            this.userRepository = userRepository;
-        }
+            ExtraCreditRequestRepository requestRepository,
+            CourseRepository courseRepository,
+            CategoryRepository categoryRepository,
+            UserRepository userRepository) {
+        this.requestRepository = requestRepository;
+        this.courseRepository = courseRepository;
+        this.categoryRepository = categoryRepository;
+        this.userRepository = userRepository;
+    }
 
-        //Create and persist a new Extra Credit Request.
-        public ExtraCreditResponseDTO createRequest(String studentEmail, ExtraCreditRequestCreateDTO dto) {
-            //Fetch and validate that the relation IDs actually exist in the database
-            Course course = courseRepository.findById(dto.getCourseId())
+    // Create and persist a new Extra Credit Request.
+    public ExtraCreditResponseDTO createRequest(String studentEmail, ExtraCreditRequestCreateDTO dto) {
+        // Fetch and validate that the relation IDs actually exist in the database
+        Course course = courseRepository.findById(dto.getCourseId())
                 .orElseThrow(() -> new RuntimeException("Course not found with ID: " + dto.getCourseId()));
 
-            Category category = categoryRepository.findById(dto.getCategoryId())
+        Category category = categoryRepository.findById(dto.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found with ID: " + dto.getCategoryId()));
 
-            User student = userRepository.findByEmailIgnoreCase(studentEmail)
+        User student = userRepository.findByEmailIgnoreCase(studentEmail)
                 .orElseThrow(() -> new RuntimeException("Student not found with Email: " + studentEmail));
-            if (student.getRole() != UserRole.STUDENT) {
-                throw new RuntimeException("Unauthorized: User is not a student");
-            }
-
-            
-            
-            //Map fields to a brand new domain Entity
-            ExtraCreditRequest request = new ExtraCreditRequest();
-            request.setCourse(course);
-            request.setCategory(category);
-            request.setStudent(student);
-            request.setDescription(dto.getDescription());
-
-            //Enforce Acceptance Criteria: Default the status to PENDING
-            request.setStatus(ExtraCreditRequestStatus.PENDING);
-
-            //Save to database and wrap the entity into the output Response DTO
-            ExtraCreditRequest savedRequest = requestRepository.save(request);
-            return new ExtraCreditResponseDTO(savedRequest);
+        if (student.getRole() != UserRole.STUDENT) {
+            throw new RuntimeException("Unauthorized: User is not a student");
         }
 
-        //Get a list of all requests
-        public List<ExtraCreditResponseDTO> getRequestsForStudent(String studentEmail) {  
-        User student = userRepository.findByEmailIgnoreCase(studentEmail)  
-            .orElseThrow(() -> new RuntimeException("User not found"));  
+        // Map fields to a brand new domain Entity
+        ExtraCreditRequest request = new ExtraCreditRequest();
+        request.setCourse(course);
+        request.setCategory(category);
+        request.setStudent(student);
+        request.setDescription(dto.getDescription());
 
-        return requestRepository.findByStudent_StudentId(student.getStudentId()).stream()  
-            .map(ExtraCreditResponseDTO::new)  
-            .collect(Collectors.toList());
-        }
+        // Enforce Acceptance Criteria: Default the status to PENDING
+        request.setStatus(ExtraCreditRequestStatus.PENDING);
+
+        // Save to database and wrap the entity into the output Response DTO
+        ExtraCreditRequest savedRequest = requestRepository.save(request);
+        return new ExtraCreditResponseDTO(savedRequest);
+    }
+
+    // Get a list of all requests for a student
+    public List<ExtraCreditResponseDTO> getRequestsForStudent(String studentEmail) {
+        User student = userRepository.findByEmailIgnoreCase(studentEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return requestRepository.findByStudent_Id(student.getId()).stream()
+                .map(ExtraCreditResponseDTO::new)
+                .collect(Collectors.toList());
+    }
 }

@@ -21,7 +21,6 @@ import edu.franklin.cecas.dto.LoginRequest;
 import edu.franklin.cecas.dto.RegisterRequest;
 import edu.franklin.cecas.exception.EmailAlreadyExistsException;
 import edu.franklin.cecas.exception.InvalidCredentialsException;
-import edu.franklin.cecas.exception.RegistrationNotAllowedException;
 import edu.franklin.cecas.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -56,17 +55,13 @@ public class AuthService {
             throw new EmailAlreadyExistsException("An account with this email already exists.");
         }
 
-        if (request.getRole() != UserRole.STUDENT) {
-            throw new RegistrationNotAllowedException("Only student self registration is allowed.");
-        }
-
         User user = new User();
         user.setEmail(normalizedEmail);
         user.setFullName(request.getFullName());
         user.setProgram(request.getProgram());
-        user.setRole(request.getRole());
+        user.setRole(UserRole.STUDENT);
         user.setPassword(passwordService.encode(request.getPassword()));
-        user.setStudentId(null);
+        user.setStudentId(request.getStudentId());
         user.setIsActive(true);
         user.setMustChangePassword(false);
         user.setEmailVerified(false);

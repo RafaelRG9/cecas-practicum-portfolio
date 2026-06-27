@@ -2,6 +2,7 @@ package edu.franklin.cecas.web;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static org.hamcrest.Matchers.containsString;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +19,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import edu.franklin.cecas.config.SecurityConfig;
-import edu.franklin.cecas.domain.UserRole;
 import edu.franklin.cecas.dto.CurrentUserResponse;
 import edu.franklin.cecas.dto.LoginRequest;
 import edu.franklin.cecas.dto.RegisterRequest;
@@ -44,15 +44,19 @@ public class AuthControllerTest {
 
         private final ObjectMapper objectMapper = new ObjectMapper();
 
-        @Test
-        void testRegisterUser() throws Exception {
-
+        private RegisterRequest createValidRegisterRequest() {
                 RegisterRequest request = new RegisterRequest();
                 request.setEmail("student@test.com");
                 request.setPassword("Password123!");
                 request.setFullName("Test Student");
                 request.setProgram("Computer Science");
-                request.setRole(UserRole.STUDENT);
+                request.setStudentId(1234);
+                return request;
+        }
+
+        @Test
+        void testRegisterUser() throws Exception {
+                RegisterRequest request = createValidRegisterRequest();
 
                 CurrentUserResponse response = new CurrentUserResponse(
                                 true,
@@ -69,7 +73,11 @@ public class AuthControllerTest {
                                 .andExpect(jsonPath("$.email").value("student@test.com"))
                                 .andExpect(jsonPath("$.role").value("STUDENT"));
 
-                verify(authService).register(any(RegisterRequest.class));
+                verify(authService).register(argThat(registerRequest ->
+                                registerRequest.getEmail().equals("student@test.com")
+                                                && registerRequest.getFullName().equals("Test Student")
+                                                && registerRequest.getProgram().equals("Computer Science")
+                                                && registerRequest.getStudentId().equals(1234)));
         }
 
         @Test
@@ -105,13 +113,9 @@ public class AuthControllerTest {
 
         @Test
         void testRegisterUserWithDuplicateEmail() throws Exception {
-
-                RegisterRequest request = new RegisterRequest();
+                RegisterRequest request = createValidRegisterRequest();
                 request.setEmail("existing@test.com");
-                request.setPassword("Password123!");
-                request.setFullName("Test Student");
-                request.setProgram("Computer Science");
-                request.setRole(UserRole.STUDENT);
+                request.setStudentId(2134);
 
                 when(authService.register(any(RegisterRequest.class)))
                                 .thenThrow(new EmailAlreadyExistsException(
@@ -176,17 +180,126 @@ public class AuthControllerTest {
          */
         @Test
         void testRegisterUserWithoutCsrfIsForbidden() throws Exception {
-                RegisterRequest request = new RegisterRequest();
-                request.setEmail("student@test.com");
-                request.setPassword("Password123!");
-                request.setFullName("Test Student");
-                request.setProgram("Computer Science");
-                request.setRole(UserRole.STUDENT);
+                RegisterRequest request = createValidRegisterRequest();
+                request.setStudentId(1432);
 
                 mockMvc.perform(post("/api/auth/register")
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                                 .andExpect(status().isForbidden());
+
+                verify(authService, never()).register(any(RegisterRequest.class));
+        }
+
+        @Test
+        void testRegisterWithoutStudentIdFails() throws Exception {
+                RegisterRequest request = createValidRegisterRequest();
+                request.setStudentId(null);
+
+                mockMvc.perform(post("/api/auth/register")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.title").value("Validation failed"))
+                                .andExpect(jsonPath("$.errorCode").value("VALIDATION_FAILED"))
+                                .andExpect(jsonPath("$.errors.studentId").exists());
+
+                verify(authService, never()).register(any(RegisterRequest.class));
+        }
+
+        @Test
+        void testRegisterWithNonPositiveStudentIdFails() throws Exception {
+                RegisterRequest request = createValidRegisterRequest();
+                request.setStudentId(0);
+
+                mockMvc.perform(post("/api/auth/register")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.title").value("Validation failed"))
+                                .andExpect(jsonPath("$.errors.studentId", containsString("greater than 0")));
+
+                verify(authService, never()).register(any(RegisterRequest.class));
+        }
+
+        @Test
+        void testRegisterWithBlankProgramFails() throws Exception {
+                RegisterRequest request = createValidRegisterRequest();
+                request.setProgram("   ");
+
+                mockMvc.perform(post("/api/auth/register")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.title").value("Validation failed"))
+                                .andExpect(jsonPath("$.errors.program").exists());
+
+                verify(authService, never()).register(any(RegisterRequest.class));
+        }
+
+        @Test
+        void testRegisterWithLongProgramNameFails() throws Exception {
+                RegisterRequest request = createValidRegisterRequest();
+                request.setProgram("A".repeat(46));
+
+                mockMvc.perform(post("/api/auth/register")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.title").value("Validation failed"))
+                                .andExpect(jsonPath("$.errors.program").exists());
+
+                verify(authService, never()).register(any(RegisterRequest.class));
+        }
+
+        @Test
+        void testRegisterWithShortEmailFails() throws Exception {
+                RegisterRequest request = createValidRegisterRequest();
+                request.setEmail("this-isnt-an-email");
+
+                mockMvc.perform(post("/api/auth/register")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.title").value("Validation failed"))
+                                .andExpect(jsonPath("$.errors.email").exists());
+
+                verify(authService, never()).register(any(RegisterRequest.class));
+        }
+
+        @Test
+        void testRegisterUserWithShortPasswordFailsValidation() throws Exception {
+                RegisterRequest request = createValidRegisterRequest();
+                request.setPassword("short");
+
+                mockMvc.perform(post("/api/auth/register")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.title").value("Validation failed"))
+                                .andExpect(jsonPath("$.errors.password").exists());
+
+                verify(authService, never()).register(any(RegisterRequest.class));
+        }
+
+        @Test
+        void testRegisterUserWithBlankFullNameFailsValidation() throws Exception {
+                RegisterRequest request = createValidRegisterRequest();
+                request.setFullName("   ");
+
+                mockMvc.perform(post("/api/auth/register")
+                                .with(csrf())
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.title").value("Validation failed"))
+                                .andExpect(jsonPath("$.errors.fullName").exists());
 
                 verify(authService, never()).register(any(RegisterRequest.class));
         }

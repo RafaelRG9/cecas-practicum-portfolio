@@ -26,7 +26,6 @@ import edu.franklin.cecas.dto.LoginRequest;
 import edu.franklin.cecas.dto.RegisterRequest;
 import edu.franklin.cecas.exception.EmailAlreadyExistsException;
 import edu.franklin.cecas.exception.InvalidCredentialsException;
-import edu.franklin.cecas.exception.RegistrationNotAllowedException;
 import edu.franklin.cecas.repository.UserRepository;
 
 @MySqlServiceTest
@@ -42,7 +41,7 @@ public class AuthServiceTest {
     private PasswordEncoder passwordEncoder;
 
     @AfterEach
-    private void clearSecurityContext() {
+    void clearSecurityContext() {
         SecurityContextHolder.clearContext();
     }
 
@@ -52,31 +51,46 @@ public class AuthServiceTest {
                 "TestPass1!",
                 "Derek Test",
                 "Computer Science",
-                UserRole.STUDENT);
+                1234);
     }
 
     private LoginRequest createLoginRequest() {
         return new LoginRequest("derek@derek.com", "TestPass1!");
     }
 
+    private User createAndSaveStudent(String email, String password) {
+        User user = new User();
+        user.setEmail(email);
+        user.setFullName("Derek Test");
+        user.setPassword(passwordEncoder.encode(password));
+        user.setProgram("Computer Science");
+        user.setRole(UserRole.STUDENT);
+        user.setStudentId(1234);
+        user.setIsActive(true);
+        user.setMustChangePassword(false);
+        user.setEmailVerified(false);
+        return userRepository.save(user);
+    }
+
     @Test
-    public void testRegisterPersistsUserAndDefaultFields() {
+    public void testRegisterPersistsNormalizedStudentUserAndDefaultFields() {
         RegisterRequest request = createRegisterRequest();
+        request.setEmail("  Derek@Derek.com  ");
 
         CurrentUserResponse response = authService.register(request);
 
-        User savedUser = userRepository.findByEmailIgnoreCase(request.getEmail()).orElseThrow();
+        User savedUser = userRepository.findByEmailIgnoreCase("derek@derek.com").orElseThrow();
 
         assertNotNull(savedUser);
-        assertEquals(request.getEmail(), savedUser.getEmail());
+        assertEquals("derek@derek.com", savedUser.getEmail());
         assertEquals(request.getFullName(), savedUser.getFullName());
         assertEquals(request.getProgram(), savedUser.getProgram());
+        assertEquals(request.getStudentId(), savedUser.getStudentId());
         assertEquals(UserRole.STUDENT, savedUser.getRole());
 
         assertTrue(passwordEncoder.matches(request.getPassword(), savedUser.getPassword()));
         assertNotEquals(request.getPassword(), savedUser.getPassword());
 
-        assertNull(savedUser.getStudentId());
         assertTrue(Boolean.TRUE.equals(savedUser.getIsActive()));
         assertFalse(Boolean.TRUE.equals(savedUser.getMustChangePassword()));
         assertFalse(Boolean.TRUE.equals(savedUser.getEmailVerified()));
@@ -88,20 +102,26 @@ public class AuthServiceTest {
     }
 
     @Test
-    void testRegisterThrowsWhenEmailAlreadyExists() {
+    void testRegisterNormalizesEmailInResponseAndStorage() {
         RegisterRequest request = createRegisterRequest();
+        request.setEmail("  Derek@Test.com  ");
 
-        User existingUser = new User();
-        existingUser.setEmail(request.getEmail());
-        existingUser.setFullName("Existing User");
-        existingUser.setPassword(passwordEncoder.encode("Existingpass1!"));
-        existingUser.setProgram("Computer Science");
-        existingUser.setRole(UserRole.STUDENT);
-        existingUser.setStudentId(null);
-        existingUser.setIsActive(true);
-        existingUser.setMustChangePassword(false);
-        existingUser.setEmailVerified(false);
-        userRepository.save(existingUser);
+        CurrentUserResponse response = authService.register(request);
+
+        User savedUser = userRepository.findByEmailIgnoreCase("derek@test.com").orElseThrow();
+
+        assertEquals("derek@test.com", savedUser.getEmail());
+        assertEquals("derek@test.com", response.email());
+        assertEquals(Integer.valueOf(1234), savedUser.getStudentId());
+        assertEquals(UserRole.STUDENT.name(), response.role());
+    }
+
+    @Test
+    void testRegisterThrowsWhenEmailAlreadyExistsIgnoringCase() {
+        RegisterRequest request = createRegisterRequest();
+        request.setEmail("  Derek@Test.com  ");
+
+        createAndSaveStudent("derek@test.com", "Existingpass1!");
 
         EmailAlreadyExistsException ex = assertThrows(
                 EmailAlreadyExistsException.class,
@@ -111,30 +131,8 @@ public class AuthServiceTest {
     }
 
     @Test
-    void testRegisterThrowsWhenRoleIsChair() {
-        RegisterRequest request = createRegisterRequest();
-        request.setRole(UserRole.CHAIR);
-
-        RegistrationNotAllowedException ex = assertThrows(
-                RegistrationNotAllowedException.class,
-                () -> authService.register(request));
-
-        assertEquals("Only student self registration is allowed.", ex.getMessage());
-    }
-
-    @Test
     void testLoginAuthenticatesUserAndStoresSecurityContext() {
-        User user = new User();
-        user.setEmail("derek@derek.com");
-        user.setFullName("Derek Test");
-        user.setPassword(passwordEncoder.encode("TestPass1!"));
-        user.setProgram("Computer Science");
-        user.setRole(UserRole.STUDENT);
-        user.setStudentId(null);
-        user.setIsActive(true);
-        user.setMustChangePassword(false);
-        user.setEmailVerified(false);
-        userRepository.save(user);
+        User user = createAndSaveStudent("derek@derek.com", "TestPass1!");
 
         LoginRequest request = createLoginRequest();
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();
@@ -154,17 +152,7 @@ public class AuthServiceTest {
 
     @Test
     void testLoginThrowsWhenCredentialsAreInvalid() {
-        User user = new User();
-        user.setEmail("derek@derek.com");
-        user.setFullName("Derek Test");
-        user.setPassword(passwordEncoder.encode("TestPass1!"));
-        user.setProgram("Computer Science");
-        user.setRole(UserRole.STUDENT);
-        user.setStudentId(null);
-        user.setIsActive(true);
-        user.setMustChangePassword(false);
-        user.setEmailVerified(false);
-        userRepository.save(user);
+        createAndSaveStudent("derek@derek.com", "TestPass1!");
 
         LoginRequest request = new LoginRequest("derek@derek.com", "WrongPass1!");
         MockHttpServletRequest httpRequest = new MockHttpServletRequest();

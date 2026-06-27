@@ -40,7 +40,7 @@ public class ExtraCreditRequestServiceTest {
     @Autowired
     private ExtraCreditRequestRepository extraCreditRequestRepository;
 
-    private User createTestStudent(String name, String email, int studentId) {
+    private User createTestStudent(String name, String email, Integer studentId) {
         User user = new User();
 
         user.setFullName(name);
@@ -145,5 +145,32 @@ public class ExtraCreditRequestServiceTest {
         // Student B: should return empty
         List<ExtraCreditResponseDTO> requestsB = extraCreditRequestService.getRequestsForStudent(studentB.getEmail());
         assertTrue(requestsB.isEmpty());
+    }
+
+    /**
+     * Tests that applications for students by UserId are successful still while StudentId is null.
+     */
+    @Test
+    public void testGetRequestsForStudentWorksWhenBusinessStudentIdIsNull() {
+        User studentA = createTestStudent("Student A", "studentA-null@test.com", null);
+    User studentB = createTestStudent("Student B", "studentB-null@test.com", null);
+    Course course = createTestCourse();
+    Category category = createTestCategory();
+
+    ExtraCreditRequestCreateDTO dto = new ExtraCreditRequestCreateDTO();
+    dto.setCourseId(course.getCourseId());
+    dto.setCategoryId(category.getCategoryId());
+    dto.setDescription("Student A Null-ID Request");
+
+    extraCreditRequestService.createRequest(studentA.getEmail(), dto);
+
+    List<ExtraCreditResponseDTO> requestsA =
+            extraCreditRequestService.getRequestsForStudent(studentA.getEmail());
+    assertEquals(1, requestsA.size());
+    assertEquals("Student A Null-ID Request", requestsA.get(0).getDescription());
+
+    List<ExtraCreditResponseDTO> requestsB =
+            extraCreditRequestService.getRequestsForStudent(studentB.getEmail());
+    assertTrue(requestsB.isEmpty());
     }
 }

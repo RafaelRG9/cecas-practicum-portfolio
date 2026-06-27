@@ -1,9 +1,9 @@
 package edu.franklin.cecas.dto;
 
-import edu.franklin.cecas.domain.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 
 
@@ -29,18 +29,19 @@ public class RegisterRequest {
     public String program;
 
     @NotNull
-    public UserRole role;
+    @Positive
+    public Integer studentId;
 
     public RegisterRequest() {
     }
 
     public RegisterRequest(String email, String password, String fullName,
-        String program, UserRole role) {
+        String program, Integer studentId) {
             this.email = email;
             this.password = password;
             this.fullName = fullName;
             this.program = program;
-            this.role = role;
+            this.studentId = studentId;
     }
 
     public String getEmail() {
@@ -75,11 +76,11 @@ public class RegisterRequest {
         this.program = program;
     }
 
-    public UserRole getRole() {
-        return this.role;
+    public Integer getStudentId() {
+        return this.studentId;
     }
 
-    public void setRole(UserRole role) {
-        this.role = role;
+    public void setStudentId(Integer studentId) {
+        this.studentId = studentId;
     }
 }
