@@ -7,7 +7,7 @@ import LoginPage from './pages/LoginPage'
 import NotFoundPage from './pages/NotFoundPage'
 import RegisterPage from './pages/RegisterPage'
 import StudentPage from './pages/StudentPage'
-import CsrfInitializer from './components/app/CsrfInitializer'
+import CsrfInitializer from './components/CsrfInitializer'
 export default function App() {
   return (
     <>
