@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import CsrfService from '../services/CsrfService'
+import CsrfService from '../../services/CsrfService'
 
   
 export default function CsrfInitializer() {
