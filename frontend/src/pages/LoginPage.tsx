@@ -1,4 +1,4 @@
-import Button from "../components/Button";
+import Button from "../components/ui/Button";
 import { useLogin } from "../hooks/useLogin";
 
 export default function LoginPage() {

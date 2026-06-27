@@ -1,41 +1,121 @@
-import type { LoginRequest, LoginResponse } from "../types/auth";
+import type {
+  ChangePasswordRequest,
+  CurrentUserResponse,
+  LoginRequest,
+  RegisterRequest,
+} from '../types/auth.types';
+import csrfService from './CsrfService';
 
-export async function login(
-    request: LoginRequest
-): Promise<LoginResponse> {
-    console.log("Login request:", request);
+class AuthService {
+  private readonly AUTH_BASE = '/api/auth';
+  private readonly USER_BASE = '/api/users';
 
-    // simulate
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  /**
+   * Register new user
+   */
+  async register(payload: RegisterRequest): Promise<CurrentUserResponse> {
+    await csrfService.init();
 
-    // 50% success
-    if (Math.random() > 0.5) {
-        return {
-            authenticated: true,
-            email: request.email,
-            role: "STUDENT",
-        };
+    const res = await csrfService.fetch(`${this.AUTH_BASE}/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Register failed (${res.status})`);
     }
-    throw new Error("Invalid email or password.");
+
+    return (await res.json()) as CurrentUserResponse;
+  }
+
+  /**
+   * Login user
+   */
+  async login(payload: LoginRequest): Promise<CurrentUserResponse> {
+    await csrfService.init();
+
+    const res = await csrfService.fetch(`${this.AUTH_BASE}/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Login failed (${res.status})`);
+    }
+
+    return (await res.json()) as CurrentUserResponse;
+  }
+
+  /**
+   * Get current session user
+   */
+  async fetchCurrentUser(): Promise<CurrentUserResponse> {
+    const res = await csrfService.fetch(`${this.AUTH_BASE}/me`);
+
+    if (!res.ok) {
+      throw new Error(`Fetch current user failed (${res.status})`);
+    }
+
+    return (await res.json()) as CurrentUserResponse;
+  }
+
+  /**
+   * Logout user
+   */
+  async logout(): Promise<void> {
+    await csrfService.init();
+
+    const res = await csrfService.fetch(`${this.AUTH_BASE}/logout`, {
+      method: 'POST',
+    });
+
+    if (!res.ok) {
+      throw new Error(`Logout failed (${res.status})`);
+    }
+  }
+
+  /**
+   * Change password
+   */
+async changePassword(payload: ChangePasswordRequest): Promise<string> {
+  await csrfService.init();
+
+  const res = await csrfService.fetch(`${this.USER_BASE}/change-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    const msg = await res.text();
+    throw new Error(`Change password failed (${res.status}): ${msg}`);
+  }
+
+  return await res.text(); 
 }
 
+/**
+ * Force change password (for chair)
+ */
+async forceChangePassword(payload: ChangePasswordRequest): Promise<string> {
+  await csrfService.init();
 
-// import type { LoginRequest, LoginResponse } from "../types/auth";
+  const res = await csrfService.fetch(`${this.USER_BASE}/force-change-password`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
 
-// export async function login(
-//   request: LoginRequest
-// ): Promise<LoginResponse> {
-//   const response = await fetch("/api/auth/login", {
-//     method: "POST",
-//     headers: {
-//       "Content-Type": "application/json",
-//     },
-//     body: JSON.stringify(request),
-//   });
+  if (!res.ok) {
+    const msg = await res.text();
+    throw new Error(`Force change password failed (${res.status}): ${msg}`);
+  }
 
-//   if (!response.ok) {
-//     throw new Error("Invalid email or password.");
-//   }
+  return await res.text(); 
+}
+}
 
-//   return response.json();
-// }
+const authService = new AuthService();
+export default authService;

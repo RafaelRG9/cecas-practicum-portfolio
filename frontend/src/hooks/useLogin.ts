@@ -1,14 +1,18 @@
 import { useState } from "react";
-import { login } from "../services/authService";
+import { useNavigate } from "react-router-dom";
+import authService from "../services/AuthService";
+
+const delay = (ms: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 export function useLogin() {
+  const navigate = useNavigate();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [loading, setLoading] = useState(false);
-
   const [error, setError] = useState("");
-
   const [success, setSuccess] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -30,16 +34,29 @@ export function useLogin() {
     setLoading(true);
 
     try {
-      const response = await login({
+      const response = await authService.login({
         email,
         password,
       });
 
-      console.log(response);
-
       setSuccess(true);
+      await delay(1000);
 
+      switch (response.role) {
+        case "STUDENT":
+          navigate("/student");
+          break;
+
+        case "CHAIR":
+          navigate("/chair");
+          break;
+
+        default:
+          navigate("/");
+      }
     } catch (err) {
+      setSuccess(false);
+
       if (err instanceof Error) {
         setError(err.message);
       } else {

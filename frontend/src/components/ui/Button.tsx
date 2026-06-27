@@ -14,7 +14,7 @@ export default function Button({
     return (
         <button
             {...props}
-            className={`rounded-md bg-blue-600 px-4 py-2 text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-400 ${className}`}
+            className={`rounded-md bg-sky-700 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-800 disabled:cursor-not-allowed disabled:bg-slate-400 ${className}`}
         >
             {children}
         </button>
