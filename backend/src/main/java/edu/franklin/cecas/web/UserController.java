@@ -1,7 +1,5 @@
 package edu.franklin.cecas.web;
 
-
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -38,15 +36,8 @@ public class UserController {
     @PreAuthorize("hasRole('CHAIR')")
     @GetMapping("/{studentId}")
     public ResponseEntity<?> getStudentById(@PathVariable Integer studentId) {
-        try {
             UserDTO dto = userService.getStudentByStudentId(studentId);
             return ResponseEntity.ok(dto);
-        } catch (RuntimeException e) {
-            if ("User not found".equals(e.getMessage())) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-            }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
-        }
     }
 
     /**
@@ -70,33 +61,29 @@ public class UserController {
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@AuthenticationPrincipal UserDetails userDetails,
                                             @Valid @RequestBody ChangePasswordRequest request) {
-        try {
-            String email = userDetails.getUsername();
-            userService.changePassword(email, request);
-            return ResponseEntity.ok("Password changed successfully");
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        String email = userDetails.getUsername();
+        userService.changePassword(email, request);
+        return ResponseEntity.ok("Password changed successfully");
+
     }
 
     /**
-     * Must change password for initial CHAIR accounts - this endpoint can be used by seeded chairs to set their password on first login
+     * Must change password for initial CHAIR accounts - this endpoint is used by seeded chairs to set their password on first login.
+     * Required request fields:
+     *  - current temporary password (currentPassword)
+     *  - new password (newPassword)
+     *  - confirm new password (confirmPassword)
+     *
      * @param userDetails
-     * @param request ChangePasswordRequest with new password (current password is not required for forced change)
+     * @param request ChangePasswordRequest containing currentPassword, newPassword, confirmPassword
      * @return Success message or error
-     * 
      */
     @PreAuthorize("hasRole('CHAIR')")
     @PostMapping("/force-change-password")
     public ResponseEntity<?> forceChangePassword(@AuthenticationPrincipal UserDetails userDetails,
                                                  @Valid @RequestBody ChangePasswordRequest request) {
-        try {
-            String email = userDetails.getUsername();
-            boolean mustChange = userService.isMustChangePassword(email);
-            userService.changePassword(email, request);
-            return ResponseEntity.ok(mustChange ? "Password changed successfully. mustChangePassword flag cleared." : "Password changed successfully");
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        String email = userDetails.getUsername();
+        userService.forceChangePassword(email, request);
+        return ResponseEntity.ok("Password changed successfully.");
     }
 }

@@ -3,6 +3,7 @@ package edu.franklin.cecas.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import edu.franklin.cecas.domain.Category;
@@ -13,6 +14,7 @@ import edu.franklin.cecas.domain.User;
 import edu.franklin.cecas.domain.UserRole;
 import edu.franklin.cecas.dto.ExtraCreditRequestCreateDTO;
 import edu.franklin.cecas.dto.ExtraCreditResponseDTO;
+import edu.franklin.cecas.exception.UnauthorizedRoleException;
 import edu.franklin.cecas.repository.CategoryRepository;
 import edu.franklin.cecas.repository.CourseRepository;
 import edu.franklin.cecas.repository.ExtraCreditRequestRepository;
@@ -50,7 +52,7 @@ public class ExtraCreditRequestService {
         User student = userRepository.findByEmailIgnoreCase(studentEmail)
                 .orElseThrow(() -> new RuntimeException("Student not found with Email: " + studentEmail));
         if (student.getRole() != UserRole.STUDENT) {
-            throw new RuntimeException("Unauthorized: User is not a student");
+            throw new UnauthorizedRoleException("Unauthorized: User is not a student");
         }
 
         // Map fields to a brand new domain Entity
@@ -71,7 +73,7 @@ public class ExtraCreditRequestService {
     // Get a list of all requests for a student
     public List<ExtraCreditResponseDTO> getRequestsForStudent(String studentEmail) {
         User student = userRepository.findByEmailIgnoreCase(studentEmail)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new UsernameNotFoundException("Student not found with Email: " + studentEmail));
 
         return requestRepository.findByStudent_Id(student.getId()).stream()
                 .map(ExtraCreditResponseDTO::new)

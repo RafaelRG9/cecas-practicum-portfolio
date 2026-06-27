@@ -59,9 +59,9 @@ public class UserServiceTest {
         user.setPassword(passwordEncoder.encode("initial"));
         userRepository.save(user);
 
-        ChangePasswordRequest req = new ChangePasswordRequest(null, "newPass", "newPass");
+        ChangePasswordRequest req = new ChangePasswordRequest("initial", "newPass", "newPass");
 
-        userService.changePassword(user.getEmail(), req);
+        userService.forceChangePassword(user.getEmail(), req);
 
         User updated = userRepository.findByEmailIgnoreCase(user.getEmail()).orElseThrow();
         assertTrue(passwordEncoder.matches("newPass", updated.getPassword()));
@@ -109,27 +109,38 @@ public class UserServiceTest {
         user.setPassword(passwordEncoder.encode("whatever"));
         userRepository.save(user);
 
-        ChangePasswordRequest req = new ChangePasswordRequest(null, "newA", "newB");
+        ChangePasswordRequest req = new ChangePasswordRequest("whatever", "newA", "newB");
 
         RuntimeException ex = assertThrows(RuntimeException.class, () -> userService.changePassword(user.getEmail(), req));
         assertEquals("New password and confirm password do not match", ex.getMessage());
     }
 
+    /**
+     * Test forced chair password change clears mustChangePassword
+     */
     @Test
-    void testIsMustChangePasswordReturnsTrueOrFalse() {
-        User uTrue = createTestUser();
-        uTrue.setRole(UserRole.CHAIR);
-        uTrue.setEmail("mustchange@test.com");
-        uTrue.setMustChangePassword(true);
-        User saved = userRepository.save(uTrue);
+    void forceChangePasswordClearsMustChangePassword() {
 
-        boolean valTrue = userService.isMustChangePassword(saved.getEmail());
-        assertTrue(valTrue);
+        User user = new User();
+        user.setFullName("Chair User");
+        user.setEmail("chair@test.com");
+        user.setRole(UserRole.CHAIR);
+        user.setIsActive(true);
+        user.setProgram("Computer Science");
+        user.setMustChangePassword(true);
+        user.setPassword(passwordEncoder.encode("tempPass"));
 
-        saved.setMustChangePassword(false);
-        userRepository.save(saved);
+        userRepository.save(user);
 
-        boolean valFalse = userService.isMustChangePassword(saved.getEmail());
-        assertFalse(valFalse);
+        ChangePasswordRequest req =
+                new ChangePasswordRequest("tempPass", "newPassword", "newPassword");
+
+        userService.forceChangePassword("chair@test.com", req);
+
+        User updated = userRepository.findByEmailIgnoreCase("chair@test.com")
+                .orElseThrow();
+
+        assertFalse(updated.getMustChangePassword());
+        assertTrue(passwordEncoder.matches("newPassword", updated.getPassword()));
     }
 }
