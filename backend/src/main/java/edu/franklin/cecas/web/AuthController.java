@@ -1,9 +1,7 @@
 package edu.franklin.cecas.web;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -18,7 +16,6 @@ import edu.franklin.cecas.service.AuthService;
 import edu.franklin.cecas.dto.RegisterRequest;
 import edu.franklin.cecas.dto.LoginRequest;
 
-
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -31,20 +28,7 @@ public class AuthController {
 
     @GetMapping("/me")
     public CurrentUserResponse getCurrentUser(Authentication authentication) {
-        if (authentication == null || authentication instanceof AnonymousAuthenticationToken) {
-            return new CurrentUserResponse(false, null, null);
-        }
-        
-        String email = authentication.getName();
-
-        String role = authentication.getAuthorities().stream()
-            .map(GrantedAuthority::getAuthority)
-            .filter(authority -> authority.startsWith("ROLE_"))
-            .map(authority -> authority.substring("ROLE_".length()))
-            .findFirst()
-            .orElse(null);
-        
-        return new CurrentUserResponse(true, email, role);
+        return authService.getCurrentUserResponse(authentication);
     }
 
     /**
@@ -69,8 +53,7 @@ public class AuthController {
             HttpServletRequest httpRequest,
             HttpServletResponse httpResponse) {
 
-        CurrentUserResponse response =
-                authService.login(request, httpRequest, httpResponse);
+        CurrentUserResponse response = authService.login(request, httpRequest, httpResponse);
 
         return ResponseEntity.ok(response);
     }

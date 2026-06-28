@@ -2,11 +2,11 @@ package edu.franklin.cecas.service;
 
 import java.util.Locale;
 
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
@@ -68,10 +68,10 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        return new CurrentUserResponse(false, savedUser.getEmail(), savedUser.getRole().name());
+        return new CurrentUserResponse(false, savedUser.getEmail(), savedUser.getRole().name(), false);
     }
 
-    public CurrentUserResponse login(LoginRequest request,HttpServletRequest httpRequest,
+    public CurrentUserResponse login(LoginRequest request, HttpServletRequest httpRequest,
             HttpServletResponse httpResponse) {
 
         String normalizedEmail = normalizeEmail(request.getEmail());
@@ -90,14 +90,10 @@ public class AuthService {
             sessionAuthenticationStrategy.onAuthentication(authentication, httpRequest, httpResponse);
             securityContextRepository.saveContext(context, httpRequest, httpResponse);
 
-            String role = authentication.getAuthorities().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .filter(authority -> authority.startsWith("ROLE_"))
-                    .map(authority -> authority.substring("ROLE_".length()))
-                    .findFirst()
-                    .orElse(null);
+            User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password."));
 
-            return new CurrentUserResponse(true, authentication.getName(), role);
+            return toCurrentUserResponse(user, true);
 
         } catch (AuthenticationException ex) {
             SecurityContextHolder.clearContext();
@@ -105,7 +101,29 @@ public class AuthService {
         }
     }
 
+    public CurrentUserResponse getCurrentUserResponse(Authentication authentication) {
+        if (authentication == null
+                || authentication instanceof AnonymousAuthenticationToken) {
+            return new CurrentUserResponse(false, null, null, false);
+        }
+
+        String email = normalizeEmail(authentication.getName());
+
+        User user = userRepository.findByEmailIgnoreCase(email)
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid email or password."));
+
+        return toCurrentUserResponse(user, true);
+    }
+
     private String normalizeEmail(String email) {
-    return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private CurrentUserResponse toCurrentUserResponse(User user, boolean authenticated) {
+    return new CurrentUserResponse(
+            authenticated,
+            user.getEmail(),
+            user.getRole().name(),
+            Boolean.TRUE.equals(user.getMustChangePassword()));
 }
 }

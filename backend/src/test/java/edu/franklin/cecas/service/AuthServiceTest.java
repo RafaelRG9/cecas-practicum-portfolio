@@ -13,6 +13,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
@@ -99,6 +103,7 @@ public class AuthServiceTest {
         assertFalse(response.authenticated());
         assertEquals(savedUser.getEmail(), response.email());
         assertEquals(savedUser.getRole().name(), response.role());
+        assertFalse(response.mustChangePassword());
     }
 
     @Test
@@ -144,10 +149,95 @@ public class AuthServiceTest {
         assertTrue(response.authenticated());
         assertEquals(user.getEmail(), response.email());
         assertEquals(user.getRole().name(), response.role());
+        assertFalse(response.mustChangePassword());
 
         HttpSession session = httpRequest.getSession(false);
         assertNotNull(session);
         assertNotNull(session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY));
+    }
+
+    @Test
+    void testLoginReturnsMustChangePasswordTrueForChairWhenPersistedFlagIsTrue() {
+        User chair = new User();
+        chair.setEmail("derek@test.com");
+        chair.setFullName("Derek Test");
+        chair.setPassword(passwordEncoder.encode("ChairPass1!"));
+        chair.setProgram("Computer Science");
+        chair.setRole(UserRole.CHAIR);
+        chair.setIsActive(true);
+        chair.setMustChangePassword(true);
+        chair.setEmailVerified(true);
+        userRepository.save(chair);
+
+        LoginRequest request = new LoginRequest("derek@test.com", "ChairPass1!");
+        MockHttpServletRequest httpRequest = new MockHttpServletRequest();
+        MockHttpServletResponse httpResponse = new MockHttpServletResponse();
+
+        CurrentUserResponse response = authService.login(request, httpRequest, httpResponse);
+
+        assertNotNull(response);
+        assertTrue(response.authenticated());
+        assertEquals("derek@test.com", response.email());
+        assertEquals(UserRole.CHAIR.name(), response.role());
+        assertTrue(response.mustChangePassword());
+
+        HttpSession session = httpRequest.getSession(false);
+        assertNotNull(session);
+        assertNotNull(session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY));
+    }
+
+    @Test
+    void testGetCurrentUserResponseReturnsAnonymousWhenAuthenticationIsNull() {
+        CurrentUserResponse response = authService.getCurrentUserResponse(null);
+
+        assertNotNull(response);
+        assertFalse(response.authenticated());
+        assertNull(response.email());
+        assertNull(response.role());
+        assertFalse(response.mustChangePassword());
+    }
+
+    @Test
+    void testGetCurrentUserResponseReturnsAnonymousForAnonymousAuthentication() {
+        Authentication anonymous = new AnonymousAuthenticationToken(
+                "key",
+                "anonymousUser",
+                AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
+
+        CurrentUserResponse response = authService.getCurrentUserResponse(anonymous);
+
+        assertNotNull(response);
+        assertFalse(response.authenticated());
+        assertNull(response.email());
+        assertNull(response.role());
+        assertFalse(response.mustChangePassword());
+    }
+
+    @Test
+    void testGetCurrentUserResponseReturnsPersistedUserDataForAuthenticatedUser() {
+        User chair = new User();
+        chair.setEmail("derek.lookup@test.com");
+        chair.setFullName("Lookup Derek");
+        chair.setPassword(passwordEncoder.encode("ChairPass1!"));
+        chair.setProgram("Computer Science");
+        chair.setRole(UserRole.CHAIR);
+        chair.setIsActive(true);
+        chair.setMustChangePassword(true);
+        chair.setEmailVerified(true);
+        userRepository.save(chair);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                "derek.lookup@test.com",
+                "ignored",
+                AuthorityUtils.createAuthorityList("ROLE_CHAIR"));
+
+        CurrentUserResponse response = authService.getCurrentUserResponse(authentication);
+
+        assertNotNull(response);
+        assertTrue(response.authenticated());
+        assertEquals("derek.lookup@test.com", response.email());
+        assertEquals(UserRole.CHAIR.name(), response.role());
+        assertTrue(response.mustChangePassword());
     }
 
     @Test

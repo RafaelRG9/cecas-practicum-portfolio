@@ -6,6 +6,7 @@ const anonymousUser: CurrentUserResponse = {
   authenticated: false,
   email: null,
   role: null,
+  mustChangePassword: false,
 }
 
 export function useCurrentUser() {
