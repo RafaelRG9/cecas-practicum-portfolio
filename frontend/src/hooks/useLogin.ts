@@ -12,13 +12,14 @@ export function useLogin() {
   );
   
   const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
+    setSuccess(false)
 
     const normalizedEmail = email.trim()
 
@@ -32,16 +33,6 @@ export function useLogin() {
       return
     }
 
-    if (!confirmPassword) {
-      setError('Confirm password is required.')
-      return
-    }
-
-    if (password !== confirmPassword) {
-      setError('Password and confirm password must match.')
-      return
-    }
-
     setLoading(true)
 
     try {
@@ -49,6 +40,9 @@ export function useLogin() {
         email: normalizedEmail,
         password,
       })
+
+      setSuccess(true)
+      await new Promise((resolve) => setTimeout(resolve, 500))
 
       navigate('/')
     } catch (err) {
@@ -65,12 +59,11 @@ export function useLogin() {
   return {
     email,
     password,
-    confirmPassword,
     loading,
     error,
+    success,
     setEmail,
     setPassword,
-    setConfirmPassword,
     handleSubmit,
   }
 }

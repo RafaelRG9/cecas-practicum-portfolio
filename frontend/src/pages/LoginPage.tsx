@@ -5,22 +5,25 @@ export default function LoginPage() {
   const {
     email,
     password,
-    confirmPassword,
     loading,
     error,
+    success,
     setEmail,
     setPassword,
-    setConfirmPassword,
     handleSubmit,
   } = useLogin()
 
   return (
     <div className="mx-auto max-w-md">
       <div
-        className={`rounded-lg border-2 bg-white p-8 shadow-sm transition-colors ${
-          error ? 'border-red-500' : 'border-slate-200'
-        }`}
-      >
+                className={`rounded-lg bg-white p-8 shadow-sm border-2 transition-colors ${
+                    success
+                        ? "border-green-500"
+                        : error
+                            ? "border-red-500"
+                            : "border-slate-200"
+                    }`}
+            >
         <h1 className="mb-2 text-center text-3xl font-semibold">Login</h1>
 
         <p className="mb-6 text-center text-slate-600">
@@ -54,24 +57,6 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full rounded-md border px-3 py-2 focus:border-blue-500 focus:outline-none"
               placeholder="Enter your password"
-              required
-            />
-          </div>
-
-          <div>
-            <label
-              htmlFor="confirmPassword"
-              className="mb-2 block text-sm font-medium"
-            >
-              Confirm Password
-            </label>
-            <input
-              id="confirmPassword"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full rounded-md border px-3 py-2 focus:border-blue-500 focus:outline-none"
-              placeholder="Re-enter your password"
               required
             />
           </div>
