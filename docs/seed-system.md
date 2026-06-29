@@ -1,9 +1,7 @@
 # Seed System Overview
-This document explains how the seed system is intended to work in CECAS.
+This document explains how the seed system works in CECAS.
 
 The goal of the seed system is to keep important reference data consistent across environments without relying on manual database inserts. This is mainly meant for data that changes occasionally, should be shared, and needs to be synchronized in a predictable way.
-
-> Note: This document describes the seed design and intended behavior for the project and should be considered a work in progress until implemented.
 
 ## What the Seed System Covers
 The seed system is responsible for synchronizing three kinds of reference data:
@@ -13,7 +11,7 @@ The seed system is responsible for synchronizing three kinds of reference data:
 
 These values come from CSV files stored in the repository rather than entered directly into the database.
 
-The planned seed directory is:
+The seed directory is:
 ```text
 seed/
 ├── courses.csv
@@ -26,13 +24,31 @@ Each file has a different purpose:
 - `categories.csv` defines the extra credit categories students can choose from.
 - `chairs.csv` defines which Chair users should exist and the course codes they currently manage.
 
-## Why Do We Need This
-This project depends on a small set of shared data that should stay consistent for the whole team. For example:
-- the same course should not be created multiple times in slightly different formats
-- category names should stay standardized
-- Chair ownership of courses should be easy to update as the data changes
+## Example CSV Headers
+- `courses.csv` - `course_code,term,section`
+- `categories.csv` - `category_name,description,default_points`
+- `chairs.csv` - `email,full_name,program,course_codes,temp_password`
 
-This system gives us one controlled source of truth for that data.
+## Example CSV Rows
+- `courses.csv`
+```
+course_code,term,section
+COMP-110,26/FA,H1WW
+COMP-110,27/SP,H2WW
+COMP-320,26/FA,H4WW
+```
+- `categories.csv`
+```
+category_name,description,default_points
+Seminar Attendance,"Approved attendance at an academic or professional seminar",5
+Research Presentation,"Presentation of approved research, poster work, or conference material",15
+```
+- `chairs.csv`
+```
+email,full_name,program,course_codes,temp_password
+grace.hopper@email.franklin.edu,Grace Hopper,Computer Science,COMP-110|COMP-120|COMP-210,ChairTemp01!
+alan.turing@email.franklin.edu,Alan Turing,Computer Science,COMP-210|COMP-230|COMP-310,ChairTemp03!
+```
 
 ## High Level Flow
 The seed process should work in this order:
@@ -81,94 +97,142 @@ For category rows:
 - `description` - trimmed
 - `default_points` - valid nonnegative integer
 
-## Validation Rules
-The seed process should reject invalid input before any persistence happens.
+## Common Validation Failures
 
-Examples of validation include:
-- missing required files
-- missing or incorrect headers
+Some common seed failures are:
+
+- missing file
+- empty file
+- missing header row
+- duplicate header names
+- wrong header order
+- unexpected header columns
+- missing header columns
+- malformed row with the wrong number of columns
 - blank required values
+- invalid course code format
+- invalid term format
+- invalid section format
+- invalid Chair email
+- invalid `default_points`
+- negative `default_points`
 - duplicate course rows after normalization
 - duplicate Chair emails after normalization
-- duplicate category names, ignoring capitalization
-- invalid email format
-- invalid or negative `default_points`
-- Chair course codes that do not exist in `courses.csv`
+- duplicate category names after normalization
+- unknown Chair course codes that do not exist in `courses.csv`
 
-Validation errors should identify the file and row that failed, but should not expose password information of any type.
+A few useful row-number conventions:
+- file-level errors use row `0`
+- header errors use row `1`
+- the first data row is row `2`
+
+Validation errors should be safe to show in logs and tests. They should identify the file, row, and failing field or rule, but they should not expose temporary password values.
 
 ## How Synchronization Works
 The seed system is designed to synchronize data, not blindly reinsert it on every run.
 
-### Courses
-Courses are matched by: `course_code + term + section`
-- If a matching course already exists and stays active, it stays active.
-- If a matching course exists but is inactive, it is reactivated.
-- If a course from the file does not exist yet, it is inserted.
-- If an active course is no longer present in the seed file, it is marked inactive instead of being deleted.
+## Natural Keys And Matching Rules
+The seed system matches rows by natural key before deciding whether to insert, update, reactivate, or deactivate anything.
 
-This matters because historical extra credit requests may still point to older course records and all data needs preserved.
+- Courses use `course_code + term + section`
+- Categories use `category_name`, matched case-insensitively
+- Chairs use normalized `email`
 
-### Categories
-Categories are matched by name without regard to capitalization.
+That means:
+- changing a course `term` or `section` creates a different course record
+- changing only category capitalization updates the same category record
+- changing a Chair email is treated as a different Chair record
 
-If a matching category exists:
-- its display name can be updated
-- its description can be updated
-- its `default_points` can be updated
-- it remains active
+## How Chair Course Codes Map To Terms And Sections
+`chairs.csv` stores Chair ownership by course code only, like `COMP-210`.
 
-If a category disappears from the seed file, it is marked inactive instead of deleted.
+During import, that one code expands to every active course row with the same `course_code`.
 
-This matters because historical extra credit requests may still point to older category records and all data needs preserved.
+Example:
+- if `courses.csv` contains `COMP-210,26/FA,H1WW`
+- and `COMP-210,26/FA,H2WW`
+- and `COMP-210,27/SP,H1WW`
 
-### Chairs
-Chairs are matched by normalized email.
+then a Chair row with `COMP-210` will be assigned to all three active course rows.
 
-If a chair does not exist yet:
-- create a new Chair user
-- store the normalized email
-- store the name and program
-- hash the temporary password
-- require a password change on first use
-- create the correct course assignments
+This is why:
+- one Chair can be assigned to many course rows
+- multiple Chairs can share the same course
+- current Chair-course ownership is tracked separately from historical request records
 
-If a Chair already exists:
-- update name and program if needed
-- keep the account active
-- synchonize curent course assignments
-- keep the existing password
-- keep existing password change state
+## Running The Seed System
 
-If a chair is removed from the seed file:
-- mark the chair inactive
-- remove current course assignments
-- keep historical request refences
+In normal Docker development, startup seeding is enabled by default through `.env`.
 
-A changed email is treated as a different Chair record because email is the Chair natural key.
+### Start The Application
+```bash
+cp .env.example .env
+docker compose up --build -d
+```
+This starts MySQL, the backend, the frontend, and Mailpit.
 
-## Chair-to-Course Assignments
-Curent Chair ownership of courses is separatate from the historical Chair reference stored on an extra credit request.
+By default:
+- frontend runs at `http://localhost:5173`
+- backend runs at `http://localhost:8080`
+- startup seeding runs automatically when the backend starts
 
-This matters because:
-- current Chair/course assignments determine who currently owns or reviews a course
-- `extra_credit_requests.chair_id` preserves who was associated with a specific request in the past
+### Run Manual Re-Seeding
+If you edit a seed CSV and want to apply it without wiping the database, run:
+```bash
+make seed
+```
+This runs the backend once with the seed profile and executes the manual seed runner against the current database.
 
-The planned model supports:
-- one Chair assigned to many courses
-- multiple Chairs assigned to the same course
-- no duplicate Chair/course assignments
+Use this for normal seed updates during development.
 
-When Chair assignments change, the system should add missing assignments and remove obsolete ones without changing any historical request records.
+### Development Database Reset
+If you want a full local rebuild from scratch, run:
+```bash
+make reset-db
+```
+This is destructive for local data. It removes the MySQL volume, reruns Flyway migrations, and then loads the current seed files again on startup.
 
-## Startup and Re-Seeding
-This design supports two main ways to run seeding:
-- automatically at startup (when enabled by configuration)
-- manually when seed files are updated later
+## How To Read Seed Summary Logs
 
-The seed directory bath should be configurable so Docker and local environments can point to the same seed file structure cleanly.
+On success, the backend logs a summary like this:
 
-A key part of the PRD for this project is that seed data should be repeatable and safe to run more than once. Re-running the same unchanged files should not create any duplicate records.
+- `Startup seed completed successfully: ...`
+- `Manual seed completed successfully: ...`
+
+The summary includes one result object for courses, categories, and Chairs.
+
+### Course Summary
+`inserted, unchanged, reactivated, deactivated`
+
+### Category Summary
+`inserted, updated, unchanged, reactivated, deactivated`
+
+### Chair Summary
+`inserted, updated, unchanged, reactivated, deactivated, assignmentsAdded, assignmentsRemoved`
+
+In plain English:
+- `inserted` means brand-new rows were created
+- `updated` means an existing row changed in place
+- `unchanged` means the row already matched the seed data
+- `reactivated` means an inactive row was turned back on
+- `deactivated` means a row was no longer present in the seed files
+- `assignmentsAdded` and `assignmentsRemoved` describe current Chair-course ownership changes
+
+## Running Seed-Related Tests
+From the `backend/` directory, you can run the parser and validation slice with:
+
+```bash
+./mvnw -Dtest='SharedSeedCsvReaderTest,CourseSeedFileReaderTest,CategorySeedFileReaderTest,ChairSeedFileReaderTest,SeedDataParserTest' test
+```
+You can run the broader seed importer and service tests with:
+```bash
+./mvnw -Dtest='CourseSeedImporterTest,CategorySeedImporterTest,ChairSeedImporterTest,SeedServiceTest' test
+```
+Note:
+- the importer and service tests use MySQL Testcontainers
+- Docker needs to be running for those tests
+
+
 
 ## Summary
 This seed system's intent is to give the project a reliable way to manage shared reference data.

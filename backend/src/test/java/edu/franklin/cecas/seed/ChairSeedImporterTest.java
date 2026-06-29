@@ -343,4 +343,43 @@ public class ChairSeedImporterTest {
         assertThat(first).isEqualTo(new ChairSeedImportResult(1, 0, 0, 0, 0, 2, 0));
         assertThat(second).isEqualTo(new ChairSeedImportResult(0, 0, 1, 0, 0, 0, 0));
     }
+
+    /**
+     * Verifies that multiple Chairs can be assigned to the same active course
+     * without conflicting with each other.
+     */
+    @Test
+    void testImportChairsAllowsMultipleChairsToShareOneCourse() {
+        Course course = saveCourse("COMP-495", "26/FA", "H1WW", true);
+
+        ChairSeedImportResult result = importer.importChairs(List.of(
+                new ChairSeedRow(
+                        "grace.hopper@email.franklin.edu",
+                        "Grace Hopper",
+                        "Computer Science",
+                        Set.of("COMP-495"),
+                        "ChairTemp01!"),
+                new ChairSeedRow(
+                        "alan.turing@email.franklin.edu",
+                        "Alan Turing",
+                        "Computer Science",
+                        Set.of("COMP-495"),
+                        "ChairTemp02!")));
+
+        User grace = userRepository.findByEmailIgnoreCase("grace.hopper@email.franklin.edu").orElseThrow();
+        User alan = userRepository.findByEmailIgnoreCase("alan.turing@email.franklin.edu").orElseThrow();
+
+        List<ChairCourseAssignment> graceAssignments = assignmentRepository.findAllByChairId(grace.getId());
+        List<ChairCourseAssignment> alanAssignments = assignmentRepository.findAllByChairId(alan.getId());
+
+        assertThat(graceAssignments)
+                .extracting(a -> a.getCourse().getCourseId())
+                .containsExactly(course.getCourseId());
+
+        assertThat(alanAssignments)
+                .extracting(a -> a.getCourse().getCourseId())
+                .containsExactly(course.getCourseId());
+
+        assertThat(result).isEqualTo(new ChairSeedImportResult(2, 0, 0, 0, 0, 2, 0));
+    }
 }

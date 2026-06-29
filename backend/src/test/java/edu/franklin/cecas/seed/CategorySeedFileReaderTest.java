@@ -188,4 +188,23 @@ public class CategorySeedFileReaderTest {
         assertEquals("category_name", error.fieldOrRule());
         assertEquals("Duplicate category row found after normalization.", error.message());
     }
+
+    /**
+     * Verifies that description normalization trims leading and trailing whitespace
+     * without collapsing internal whitespace.
+     */
+    @Test
+    void testDescriptionPreservesInternalWhitespaceWhileTrimmingEdges() throws IOException {
+        Path file = writeCSV("categories.csv", """
+                category_name,description,default_points
+                Seminar Attendance,"  Approved   seminar   attendance  ",5
+                """);
+
+        List<CategorySeedRow> rows = reader.read(file);
+
+        assertEquals(1, rows.size());
+        assertEquals(
+                new CategorySeedRow("Seminar Attendance", "Approved   seminar   attendance", 5),
+                rows.get(0));
+    }
 }
