@@ -1,11 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import authService from '../services/AuthService'
+import { useLocation } from 'react-router-dom'
 
 export function useLogin() {
   const navigate = useNavigate()
+  const location = useLocation();
 
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(
+    () => location.state?.email ?? ''
+  );
+  
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [loading, setLoading] = useState(false)
