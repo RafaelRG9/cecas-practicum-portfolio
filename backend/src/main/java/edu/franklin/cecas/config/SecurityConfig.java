@@ -4,7 +4,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -18,7 +17,6 @@ import org.springframework.security.web.authentication.session.ChangeSessionIdAu
 import org.springframework.security.web.authentication.session.SessionAuthenticationStrategy;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.context.SecurityContextRepository;
-import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.header.writers.ClearSiteDataHeaderWriter;
 import edu.franklin.cecas.service.CecasUserDetailsService;
 
@@ -43,8 +41,7 @@ public class SecurityConfig {
             SecurityContextRepository securityContextRepository) throws Exception {
 
         http
-                .csrf(csrf -> csrf
-                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+                .csrf(csrf -> csrf.spa())
                 .securityContext(sc -> sc.securityContextRepository(securityContextRepository))
                 .sessionManagement(sm -> sm
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
@@ -61,7 +58,7 @@ public class SecurityConfig {
                         .addLogoutHandler(new HeaderWriterLogoutHandler(
                                 new ClearSiteDataHeaderWriter(ClearSiteDataHeaderWriter.Directive.COOKIES)))
                         .permitAll())
-                .httpBasic(Customizer.withDefaults()); // Use HTTP Basic authentication for simplicity in development
+                .httpBasic(httpBasic -> httpBasic.disable());
 
         return http.build();
     }
