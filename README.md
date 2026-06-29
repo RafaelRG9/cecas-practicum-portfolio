@@ -1,182 +1,38 @@
-# Summer Team 5
+# Canvas Extra Credit Automation System (CECAS) - Practicum Portfolio
 
-This is the team repository for Summer Team 5.
+This repository serves as a private archive of my backend engineering contributions to the CECAS web application during the Summer 2026 CS Practicum.
 
-## Project
+## 🛠️ My Architecture & Feature Contributions
 
-Project details follow. 
+### 🔹 Ticket #11: Core User Security Domain Model
+* Designed and implemented the traditional, native Java `User` entity layer mapping directly to the MySQL database schema.
+* Created the foundational `UserRole` Enum to securely enforce platform access constraints between `STUDENT` and `CHAIR` actors.
 
-### Project Name
- Canvas Extra Credit Automation System (CECAS)
+### 🔹 Ticket #13: Extra Credit Request Relational Schema
+* Developed the `ExtraCreditRequest` model mapping compound foreign-key relationships (`@ManyToOne`) linking users, courses, and categories.
+* Architected read-only database timestamp controls (`insertable = false, updatable = false`) to enforce system audit trail integrity.
 
-### Project Description  
-The CECAS is a web application that allows students to apply for extra credit based on specific academic activities (such as seminars, competitions, and certifications). Program chairs can review, approve, or deny applications and provide feedback. This system replaces the manual, email-based process and provides an audit trail for each application's progress from submission to completion.
+### 🔹 Ticket #15: Course Data Persistence Layer
+* **Objective:** Engineered the core data access object framework for academic tracking components using Spring Data JPA.
+* **Implementation:** Built the `CourseRepository` interface, exposing a custom query operation `findByCourseCode(String courseCode)` leveraging implicit JPQL query generation.
+* **Testing & Quality Assurance:** Developed containerized integration tests using JUnit 5, AssertJ, and **Testcontainers (MySQL 8.4)** to guarantee zero-drift production parity.
 
-## Team
+### 🔹 Ticket #16: Category Architecture & Validation
+* **Objective:** Created the architectural database mapping layer for assessment categorization metrics.
+* **Implementation:** Developed the `CategoryRepository` data layer and implemented the required `findByCategoryName(String categoryName)` abstraction.
+* **Testing & Quality Assurance:** Activated core persistence test scaffolding and engineered targeted data validation suites inside isolated Dockerized test environments.
 
-Team details follow
+### 🔹 Ticket #53: JPA Relational Mapping & Data Isolation Fix
+* **Objective:** Investigate and resolve a critical data isolation failure where test suites returned empty results (`expected: <1> but was: <0>`) during multi-user isolation testing.
+* **Implementation:** Identified a structural bug where the service layer filtered repository queries using the auto-incrementing database primary key (`student.getId()`) rather than the explicit domain business tracking column (`student.getStudentId()`). Refactored the underlying query logic in the service layer to target the correct business key.
+* **Testing & Quality Assurance:** Updated the transactional test runner with clean unique parameter isolation and non-overlapping identity hashes to guarantee robust independent data separation and zero state-leakage.
 
-### 495 Students 
+### 🔹 Ticket #51: Role-Based Access Control & Security Context Injection
+* **Objective:** Secure exposed API endpoints and refactored payload processing to align with modern authorization standards.
+* **Implementation:** Refactored the controller architecture to drop manual identity injection via inbound DTO parameters. Integrated `@PreAuthorize("hasRole('STUDENT')")` to restrict endpoint access exclusively to authorized student profiles and utilized `@AuthenticationPrincipal UserDetails` to securely extract verified user identities directly from the session. Added `@Valid` to enforce data binding constraints.
+* **Testing & Quality Assurance:** Executed the localized controller web layer testing suites to confirm role-based blocking restrictions and verify secure payload mapping.
 
-Derek Finnell
-
-Nica Kelley
-
-### 394 Students
-
-Emmy Solokha
-
-Burt Snyder
-
-### 294 Students
-
-Rafael Ramirez-Gaston
-
-Alec Johnson
-
-## Tech Stack
-### Frontend
-- React + TypeScript + React
-
-### Backend
-- Spring Boot
-
-### Database
-- MySQL + Flyway for schema migrations
-
-### Email
-- Mailpit
-
-### Styling
-- TailwindCSS
-
-## Prerequisites
-
-- Docker Desktop (recommended for running all services)
-
-- Git (for version control)
-
-> **Note:**  
-
-> All required services (Spring Boot 4.0.6, React 19.2.6, Tailwind CSS 4.3.0, Mailpit 1.30.0, MySQL 8.4, Flyway 11.14.1) are managed by Docker Compose. 
-
-> You do **not** need to install Java, Maven, Node.js, or MySQL locally unless you want to run services outside Docker for development.
-
-## Set Up and Installation
-
-Details on how to set up the project follow.
-
-This project will use Docker Compose to run:
-- MySQL for the database
-- Mailpit for local email testing
-
-### First Time Setup
-1. Clone the repository using either ssh or https depending on how you use git.
-
-```bash
-git clone <https://github.com/2026-Summer-Franklin-CS-Practicum/2026_Summer_Team5_Repo.git>
-
-# enter project directory
-cd 2026_Summer_Team5_Repo
-
-# switch to the develop branch
-git checkout develop
-```
-
-2. Create local environment file from the example.
-
-```bash
-cp .env.example .env
-```
-
-3. Build the project
-
-```bash
-docker compose up --build -d
-```
-
-4. View App
-Access the UI at: http://localhost:5173
-
-### Using Docker
-
-To start services:
-```bash
-docker compose up -d
-```
-
-To stop services:
-```bash
-docker compose down
-```
-
-For a full local database rebuild
-```bash
-make reset-db
-```
-
-### Seed Data
-A clean Docker startup will run Flyway migrations first and then load the seed files when startup seeding is enabled.
-
-The backend reads seed files from the repository `seed/` directory:
-- `courses.csv`
-- `categories.csv`
-- `chairs.csv`
-
-Important behavior:
-- Editing a CSV file by itself does not change the running database.
-- Seed changes are only applied when the backend starts with seeding enabled, or when you run the manual reseed command.
-- The seed directory is mounted into the backend container as read-only, so seed file updates do not require Java code changes or rebuilding the backend image.
-
-To apply updated seed files without resetting the database:
-```bash
-make seed
-```
-Use this command for normal reseeding after editing a seed CSV.
-To completely reset the local database and rebuild it from Flyway migrations plus the current seed files:
-```bash
-make reset-db
-```
-make reset-db is destructive and is only meant for local development. It is not the normal way to apply seed file changes.
-
-## Git Workflow
-Follow these steps to ensure your local code is synchronized with the team's progress.
-
-Update Develop and Create Feature Branch
-Always start by pulling the latest changes from the shared develop branch before starting new work.
-
-```bash
-git checkout develop
-```
-```bash
-git pull
-```
-```bash
-git checkout -b feature/your-ticket-name
-```
-## Finished Work: Commit and Push
-Once your ticket is complete, stage your changes and push them to the remote repository.
-```bash
-git add .
-```
-```bash
-git commit -m "ticket name"
-```
-```bash
-git push -u origin feature/your-ticket-name
-```
-## Open Pull Request into develop on GitHub
-Go to the GitHub repository website to open a Pull Request (PR) from your feature branch into develop for review.
-
-## Testing Notes
-We are testing against the MySQL database rather than using in memory for consistency and expected behavior.
-We have created some custom annotations for testing to streamline things. Use:
-- @MySqlDataJpaTest for repository/entity tests
-- @MySqlServiceTest for service-layer tests with real Spring + MySQL
-- @MySqlMockMvcTest for auth/web integration tests with real Spring + MySQL + MockMvc
-- @WebMvcTest for lightweight controller-slice tests
-
-## Documentation
-Design and implementation notes for all shared project subsystems.
-
-- [Seed System Overview](docs/seed-system.md)
+### 🔹 Ticket #55: Core State Machine Logic Engine & Constraint Resolution
+* **Objective:** Architect and implement the central backend state machine transition engine to securely manage the comprehensive lifecycle of student extra credit requests.
+* **Implementation:** Built the core business logic in `StateMachineServiceImpl.java` to enforce valid state transitions (`PENDING`, `PRE_APPROVED`, `EVIDENCE_SUBMITTED`, `APPROVED`, `REJECTED`). Integrated explicit role-based access checks ensuring only a Faculty Chair can pre-approve or reject applications, and resolved a data persistence discrepancy to correctly save contextual chair feedback and final awarded points parameters into the database entity schema.
+* **Testing & Quality Assurance:** Adapted the test suite to leverage the project's custom `@MySqlServiceTest` containerized environment. Resolved an underlying Hibernate data integrity constraint failure by diagnosing a non-nullable `program` database schema restriction on the user entity and refactoring the test harness data setup to guarantee a clean, 100% passing test execution without state leakage.
