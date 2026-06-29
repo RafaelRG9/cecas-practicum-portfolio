@@ -39,6 +39,7 @@ services:
       UPLOAD_DIR: ${UPLOAD_DIR}
       SEED_DATA_PATH: ${SEED_DATA_PATH}
       APP_SEED_ENABLED: ${APP_SEED_ENABLED}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE}
     ports:
       - "${BACKEND_PORT}:8080"
     volumes:
